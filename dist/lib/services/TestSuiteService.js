@@ -15,16 +15,18 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.ProjectService = void 0;
+exports.TestSuiteService = void 0;
 const class_transformer_1 = require("class-transformer");
 const tsyringe_1 = require("tsyringe");
 const business_error_1 = require("../common/business-error");
 const constants_1 = require("../common/constants");
 const StringUtils_1 = require("../common/StringUtils");
 const DatabaseManager_1 = require("../database/DatabaseManager");
-const Project_entity_1 = require("../models/Project.entity");
+const TestSuite_entity_1 = require("../models/TestSuite.entity");
 const ProjectRepository_1 = require("../repositories/ProjectRepository");
-let ProjectService = class ProjectService {
+const TestStateRepository_1 = require("../repositories/TestStateRepository");
+const TestSuiteRepository_1 = require("../repositories/TestSuiteRepository");
+let TestSuiteService = class TestSuiteService {
     constructor() {
         this._database = tsyringe_1.container.resolve(DatabaseManager_1.DatabaseManager);
     }
@@ -33,14 +35,16 @@ let ProjectService = class ProjectService {
             try {
                 const conn = yield this._database.getConnection();
                 const skip = (page - 1) * pageSize;
-                const projectRepo = conn.getCustomRepository(ProjectRepository_1.ProjectRepository);
-                const qb = projectRepo.createQueryBuilder("p")
-                    .where(`p.deleted_at is null`);
+                const testSuiteRepo = conn.getCustomRepository(TestSuiteRepository_1.TestSuiteRepository);
+                const qb = testSuiteRepo.createQueryBuilder("t")
+                    //.innerJoinAndSelect('t.testState', 'ts')
+                    .innerJoinAndSelect('t.project', 'p')
+                    .where(`t.deleted_at is null`);
                 if (search) {
-                    qb.andWhere(`concat(p.title,p.description) like '%${search}%'`);
+                    qb.andWhere(`concat(t.title,t.description) like '%${search}%'`);
                 }
                 qb.orderBy({
-                    "p.id": sortOrder
+                    "t.id": sortOrder
                 });
                 if (page && pageSize) {
                     qb.skip(skip);
@@ -59,14 +63,18 @@ let ProjectService = class ProjectService {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 const conn = yield this._database.getConnection();
-                const projectRepo = conn.getCustomRepository(ProjectRepository_1.ProjectRepository);
-                const project = yield projectRepo.findOne({ id }, {
+                const testSuiteRepo = conn.getCustomRepository(TestSuiteRepository_1.TestSuiteRepository);
+                const suite = yield testSuiteRepo.findOne({ id }, {
                     where: {
                         deletedAt: null,
                     },
+                    relations: [
+                        "project",
+                        "testState",
+                    ],
                     withDeleted: true
                 });
-                return project;
+                return suite;
             }
             catch (error) {
                 console.error(error);
@@ -78,14 +86,29 @@ let ProjectService = class ProjectService {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 const conn = yield this._database.getConnection();
-                const entity = (0, class_transformer_1.plainToClass)(Project_entity_1.Project, dto);
+                const entity = (0, class_transformer_1.plainToClass)(TestSuite_entity_1.TestSuite, dto);
                 return yield conn.transaction((transactionalEntityManager) => __awaiter(this, void 0, void 0, function* () {
                     const projectRepo = transactionalEntityManager.getCustomRepository(ProjectRepository_1.ProjectRepository);
-                    console.log("Creating test project:");
+                    const testSuiteRepo = transactionalEntityManager.getCustomRepository(TestSuiteRepository_1.TestSuiteRepository);
+                    const testStateRepo = transactionalEntityManager.getCustomRepository(TestStateRepository_1.TestStateRepository);
+                    const project = yield projectRepo.findOne(dto.projectId);
+                    if (!project) {
+                        const notFoundError = new business_error_1.BusinessError(StringUtils_1.StringUtils.format(constants_1.ProvaConstants.MESSAGE_RESPONSE_NOT_FOUND, 'Projects', dto.projectId.toString()), 404);
+                        return Promise.reject(notFoundError);
+                    }
+                    entity.project = project;
+                    const stateId = constants_1.ProvaConstants.TEST_STATE_NOT_EXECUTED;
+                    const state = yield testStateRepo.findOne(stateId);
+                    if (!state) {
+                        const notFoundError = new business_error_1.BusinessError(StringUtils_1.StringUtils.format(constants_1.ProvaConstants.MESSAGE_RESPONSE_NOT_FOUND, 'Test States', stateId.toString()), 404);
+                        return Promise.reject(notFoundError);
+                    }
+                    entity.testState = state;
+                    console.log("Creating test suite:");
                     console.log(entity);
-                    const project = projectRepo.save(entity);
-                    console.log("Project saved successfully");
-                    return project;
+                    const testSuite = testSuiteRepo.save(entity);
+                    console.log("Test Suite saved successfully");
+                    return testSuite;
                 })).catch(error => {
                     return Promise.reject(error);
                 });
@@ -101,19 +124,19 @@ let ProjectService = class ProjectService {
             try {
                 const conn = yield this._database.getConnection();
                 return yield conn.transaction((transactionalEntityManager) => __awaiter(this, void 0, void 0, function* () {
-                    const projectRepo = transactionalEntityManager.getCustomRepository(ProjectRepository_1.ProjectRepository);
-                    const entity = yield projectRepo.findOne(id);
+                    const testSuiteRepo = transactionalEntityManager.getCustomRepository(TestSuiteRepository_1.TestSuiteRepository);
+                    const entity = yield testSuiteRepo.findOne(id);
                     if (!entity) {
-                        const notFoundError = new business_error_1.BusinessError(StringUtils_1.StringUtils.format(constants_1.ProvaConstants.MESSAGE_RESPONSE_NOT_FOUND, 'Projects', id.toString()), 404);
+                        const notFoundError = new business_error_1.BusinessError(StringUtils_1.StringUtils.format(constants_1.ProvaConstants.MESSAGE_RESPONSE_NOT_FOUND, 'Test Suites', id.toString()), 404);
                         return Promise.reject(notFoundError);
                     }
-                    console.log("Updating test project:");
+                    console.log("Updating test suite:");
                     entity.title = dto.title;
                     entity.description = dto.description;
                     console.log(entity);
-                    const project = yield projectRepo.save(entity);
-                    console.log("Project updated successfully");
-                    return project;
+                    const testSuite = yield testSuiteRepo.save(entity);
+                    console.log("Test Suite updated successfully");
+                    return testSuite;
                 })).catch(error => {
                     return Promise.reject(error);
                 });
@@ -125,8 +148,8 @@ let ProjectService = class ProjectService {
         });
     }
 };
-ProjectService = __decorate([
+TestSuiteService = __decorate([
     (0, tsyringe_1.singleton)()
-], ProjectService);
-exports.ProjectService = ProjectService;
-//# sourceMappingURL=ProjectService.js.map
+], TestSuiteService);
+exports.TestSuiteService = TestSuiteService;
+//# sourceMappingURL=TestSuiteService.js.map

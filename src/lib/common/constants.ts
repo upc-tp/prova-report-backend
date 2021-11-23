@@ -38,10 +38,11 @@ export class ProvaConstants {
 
     public static readonly AUTH0_CLAIMS_DOMAIN = "https://rollosnp.com";
 
-    public static readonly TEST_STATE_SKIPPED = 1;
+    public static readonly TEST_STATE_NOT_EXECUTED = 1;
     public static readonly TEST_STATE_PASSED = 2;
     public static readonly TEST_STATE_FAILED = 3;
-    public static readonly TEST_STATE_BROKEN = 4;
+    public static readonly TEST_STATE_SKIPPED = 4;
+    public static readonly TEST_STATE_BROKEN = 5;
 
     //#endregion
 }

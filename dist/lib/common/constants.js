@@ -31,8 +31,9 @@ ProvaConstants.VALIDATION_DEFAULT_LENGTH_RUC = 11;
 //#endregion
 //#region Business Rules
 ProvaConstants.AUTH0_CLAIMS_DOMAIN = "https://rollosnp.com";
-ProvaConstants.TEST_STATE_SKIPPED = 1;
+ProvaConstants.TEST_STATE_NOT_EXECUTED = 1;
 ProvaConstants.TEST_STATE_PASSED = 2;
 ProvaConstants.TEST_STATE_FAILED = 3;
-ProvaConstants.TEST_STATE_BROKEN = 4;
+ProvaConstants.TEST_STATE_SKIPPED = 4;
+ProvaConstants.TEST_STATE_BROKEN = 5;
 //# sourceMappingURL=constants.js.map

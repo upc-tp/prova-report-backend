@@ -42,6 +42,23 @@ export class ProjectService {
         }
     }
 
+    async getById(id: number): Promise<Project> {
+        try {
+            const conn = await this._database.getConnection();
+            const projectRepo = conn.getCustomRepository(ProjectRepository);
+            const project = await projectRepo.findOne({ id }, {
+                where: {
+                    deletedAt: null,
+                },
+                withDeleted: true
+            });
+            return project;
+        } catch (error) {
+            console.error(error);
+            return Promise.reject(error);
+        }
+    }
+
     async save(dto: ProjectSaveDTO): Promise<Project> {
         try {
             const conn = await this._database.getConnection();
