@@ -1,0 +1,14 @@
+# package directories
+.idea
+node_modules
+jspm_packages
+package-lock.json
+
+# TypeScript
+.build
+
+# Dotenv
+.env
+
+#Other
+.DS_Store
