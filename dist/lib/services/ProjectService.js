@@ -16,9 +16,13 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ProjectService = void 0;
+const class_transformer_1 = require("class-transformer");
 const tsyringe_1 = require("tsyringe");
+const business_error_1 = require("../common/business-error");
 const constants_1 = require("../common/constants");
+const StringUtils_1 = require("../common/StringUtils");
 const DatabaseManager_1 = require("../database/DatabaseManager");
+const Project_entity_1 = require("../models/Project.entity");
 const ProjectRepository_1 = require("../repositories/ProjectRepository");
 let ProjectService = class ProjectService {
     constructor() {
@@ -44,6 +48,56 @@ let ProjectService = class ProjectService {
                 }
                 const result = yield qb.getManyAndCount();
                 return result;
+            }
+            catch (error) {
+                console.error(error);
+                return Promise.reject(error);
+            }
+        });
+    }
+    save(dto) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                const conn = yield this._database.getConnection();
+                const entity = (0, class_transformer_1.plainToClass)(Project_entity_1.Project, dto);
+                return yield conn.transaction((transactionalEntityManager) => __awaiter(this, void 0, void 0, function* () {
+                    const projectRepo = transactionalEntityManager.getCustomRepository(ProjectRepository_1.ProjectRepository);
+                    console.log("Creating test project:");
+                    console.log(entity);
+                    const project = projectRepo.save(entity);
+                    console.log("Project saved successfully");
+                    return project;
+                })).catch(error => {
+                    return Promise.reject(error);
+                });
+            }
+            catch (error) {
+                console.error(error);
+                return Promise.reject(error);
+            }
+        });
+    }
+    update(id, dto) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                const conn = yield this._database.getConnection();
+                return yield conn.transaction((transactionalEntityManager) => __awaiter(this, void 0, void 0, function* () {
+                    const projectRepo = transactionalEntityManager.getCustomRepository(ProjectRepository_1.ProjectRepository);
+                    const entity = yield projectRepo.findOne(id);
+                    if (!entity) {
+                        const notFoundError = new business_error_1.BusinessError(StringUtils_1.StringUtils.format(constants_1.ProvaConstants.MESSAGE_RESPONSE_NOT_FOUND, 'Projects', id.toString()), 404);
+                        return Promise.reject(notFoundError);
+                    }
+                    console.log("Updating test project:");
+                    entity.title = dto.title;
+                    entity.description = dto.description;
+                    console.log(entity);
+                    const project = yield projectRepo.save(entity);
+                    console.log("Project updated successfully");
+                    return project;
+                })).catch(error => {
+                    return Promise.reject(error);
+                });
             }
             catch (error) {
                 console.error(error);
