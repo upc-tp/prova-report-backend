@@ -1,1 +1,0 @@
-{"version":3,"file":"ProjectSaveDTO.js","sourceRoot":"","sources":["../../../src/lib/dtos/ProjectSaveDTO.ts"],"names":[],"mappings":";;;;;;;;;AAAA,qDAA2C;AAC3C,mDAAqD;AAGrD,MAAa,cAAc;CAU1B;AANG;IAHC,IAAA,0BAAQ,EAAC;QACN,OAAO,EAAE,0BAAc,CAAC,4BAA4B;KACvD,CAAC;6CACY;AAKd;IAHC,IAAA,0BAAQ,EAAC;QACN,OAAO,EAAE,0BAAc,CAAC,4BAA4B;KACvD,CAAC;mDACkB;AATxB,wCAUC"}
