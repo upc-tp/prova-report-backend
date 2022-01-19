@@ -30,7 +30,7 @@ let TestCaseService = class TestCaseService {
     constructor() {
         this._database = tsyringe_1.container.resolve(DatabaseManager_1.DatabaseManager);
     }
-    getPaged(page, pageSize, sortOrder = constants_1.ProvaConstants.SORT_ORDER_DESC, search, testCaseId) {
+    getPaged(page, pageSize, sortOrder = constants_1.ProvaConstants.SORT_ORDER_DESC, search, testCaseId = null) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 const conn = yield this._database.getConnection();

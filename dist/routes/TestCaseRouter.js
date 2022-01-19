@@ -35,23 +35,23 @@ const business_error_1 = require("../lib/common/business-error");
 const constants_1 = require("../lib/common/constants");
 const responses_1 = require("../lib/common/responses");
 const StringUtils_1 = require("../lib/common/StringUtils");
-const TestSuiteSaveDTO_1 = require("../lib/dtos/TestSuiteSaveDTO");
-const TestSuiteUpdateDTO_1 = require("../lib/dtos/TestSuiteUpdateDTO");
-const TestSuiteService_1 = require("../lib/services/TestSuiteService");
-const _testSuiteService = tsyringe_1.container.resolve(TestSuiteService_1.TestSuiteService);
+const TestCaseSaveDTO_1 = require("../lib/dtos/TestCaseSaveDTO");
+const TestCaseUpdateDTO_1 = require("../lib/dtos/TestCaseUpdateDTO");
+const TestCaseService_1 = require("../lib/services/TestCaseService");
+const _testCaseService = tsyringe_1.container.resolve(TestCaseService_1.TestCaseService);
 const router = express.Router();
 router.get('/', (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         let page = +req.query.page;
         let pageSize = +req.query.pageSize;
-        let projectId = +req.query.projectId;
+        let testSuiteId = +req.query.testSuiteId;
         const { sortOrder, search } = req.query;
-        const [result, count] = yield _testSuiteService.getPaged(page, pageSize, sortOrder, search, projectId);
+        const [result, count] = yield _testCaseService.getPaged(page, pageSize, sortOrder, search, testSuiteId);
         if (!page || !pageSize) {
             page = 1;
             pageSize = count;
         }
-        const message = StringUtils_1.StringUtils.format(constants_1.ProvaConstants.MESSAGE_RESPONSE_GET_SUCCESS, 'Test Suites');
+        const message = StringUtils_1.StringUtils.format(constants_1.ProvaConstants.MESSAGE_RESPONSE_GET_SUCCESS, 'Test Cases');
         const response = (0, responses_1.ResultResponse)(page, pageSize, count, message, true, result);
         res.status(200).send(response);
     }
@@ -62,11 +62,11 @@ router.get('/', (req, res, next) => __awaiter(void 0, void 0, void 0, function* 
 router.get('/:id', (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const id = +req.params.id;
-        const result = yield _testSuiteService.getById(id);
+        const result = yield _testCaseService.getById(id);
         if (!result) {
-            throw new business_error_1.BusinessError(StringUtils_1.StringUtils.format(constants_1.ProvaConstants.MESSAGE_RESPONSE_NOT_FOUND, 'Test Suites', id.toString()), 404);
+            throw new business_error_1.BusinessError(StringUtils_1.StringUtils.format(constants_1.ProvaConstants.MESSAGE_RESPONSE_NOT_FOUND, 'Test Cases', id.toString()), 404);
         }
-        const message = StringUtils_1.StringUtils.format(constants_1.ProvaConstants.MESSAGE_RESPONSE_GET_SUCCESS, 'Test Suites');
+        const message = StringUtils_1.StringUtils.format(constants_1.ProvaConstants.MESSAGE_RESPONSE_GET_SUCCESS, 'Test Cases');
         const response = (0, responses_1.SingleResponse)(message, true, result);
         res.status(200).send(response);
     }
@@ -76,13 +76,13 @@ router.get('/:id', (req, res, next) => __awaiter(void 0, void 0, void 0, functio
 }));
 router.post('/', (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const dto = (0, class_transformer_1.plainToClass)(TestSuiteSaveDTO_1.TestSuiteSaveDTO, req.body);
+        const dto = (0, class_transformer_1.plainToClass)(TestCaseSaveDTO_1.TestCaseSaveDTO, req.body);
         const errors = yield (0, class_validator_1.validate)(dto);
         if (errors.length > 0) {
             return next(errors);
         }
-        const result = yield _testSuiteService.save(dto);
-        const message = StringUtils_1.StringUtils.format(constants_1.ProvaConstants.MESSAGE_RESPONSE_POST_SUCCESS, 'Test Suites');
+        const result = yield _testCaseService.save(dto);
+        const message = StringUtils_1.StringUtils.format(constants_1.ProvaConstants.MESSAGE_RESPONSE_POST_SUCCESS, 'Test Cases');
         const response = (0, responses_1.SingleResponse)(message, true, result);
         res.status(201).send(response);
     }
@@ -93,13 +93,13 @@ router.post('/', (req, res, next) => __awaiter(void 0, void 0, void 0, function*
 router.put('/:id', (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const id = +req.params.id;
-        const dto = (0, class_transformer_1.plainToClass)(TestSuiteUpdateDTO_1.TestSuiteUpdateDTO, req.body);
+        const dto = (0, class_transformer_1.plainToClass)(TestCaseUpdateDTO_1.TestCaseUpdateDTO, req.body);
         const errors = yield (0, class_validator_1.validate)(dto);
         if (errors.length > 0) {
             return next(errors);
         }
-        const result = yield _testSuiteService.update(id, dto);
-        const message = StringUtils_1.StringUtils.format(constants_1.ProvaConstants.MESSAGE_RESPONSE_PUT_SUCCESS, 'Test Suites');
+        const result = yield _testCaseService.update(id, dto);
+        const message = StringUtils_1.StringUtils.format(constants_1.ProvaConstants.MESSAGE_RESPONSE_PUT_SUCCESS, 'Test Cases');
         const response = (0, responses_1.SingleResponse)(message, true, result);
         res.status(200).send(response);
     }
@@ -108,4 +108,4 @@ router.put('/:id', (req, res, next) => __awaiter(void 0, void 0, void 0, functio
     }
 }));
 module.exports = router;
-//# sourceMappingURL=TestSuiteRouter.js.map
+//# sourceMappingURL=TestCaseRouter.js.map

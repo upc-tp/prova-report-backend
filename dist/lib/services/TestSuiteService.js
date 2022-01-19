@@ -30,7 +30,7 @@ let TestSuiteService = class TestSuiteService {
     constructor() {
         this._database = tsyringe_1.container.resolve(DatabaseManager_1.DatabaseManager);
     }
-    getPaged(page, pageSize, sortOrder = constants_1.ProvaConstants.SORT_ORDER_DESC, search) {
+    getPaged(page, pageSize, sortOrder = constants_1.ProvaConstants.SORT_ORDER_DESC, search, projectId = null) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 const conn = yield this._database.getConnection();
@@ -42,6 +42,9 @@ let TestSuiteService = class TestSuiteService {
                     .where(`t.deleted_at is null`);
                 if (search) {
                     qb.andWhere(`concat(t.title,t.description) like '%${search}%'`);
+                }
+                if (projectId) {
+                    qb.andWhere(`t.project_id = ${projectId}`);
                 }
                 qb.orderBy({
                     "t.id": sortOrder

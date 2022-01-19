@@ -19,7 +19,7 @@ export class TestSuiteService {
         this._database = container.resolve(DatabaseManager);
     }
 
-    async getPaged(page: number, pageSize: number, sortOrder: string = ProvaConstants.SORT_ORDER_DESC, search: string): Promise<[TestSuite[], number]> {
+    async getPaged(page: number, pageSize: number, sortOrder: string = ProvaConstants.SORT_ORDER_DESC, search: string, projectId: number = null): Promise<[TestSuite[], number]> {
         try {
             const conn = await this._database.getConnection();
             const skip = (page - 1) * pageSize;
@@ -30,6 +30,9 @@ export class TestSuiteService {
                 .where(`t.deleted_at is null`);
             if (search) {
                 qb.andWhere(`concat(t.title,t.description) like '%${search}%'`);
+            }
+            if(projectId) {
+                qb.andWhere(`t.project_id = ${projectId}`);
             }
             qb.orderBy({
                 "t.id": sortOrder as any

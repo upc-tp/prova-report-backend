@@ -6,6 +6,7 @@ require('dotenv').config();
 import morgan = require('morgan');
 import cors = require('cors');
 import express = require('express');
+import { errorHandler } from "./lib/middlewares/error-handler";
 
 //#endregion
 
@@ -23,12 +24,17 @@ app.use(morgan('tiny'));
 const projectsRouter = require('./routes/ProjectRouter');
 const testStatesRouter = require('./routes/TestStateRouter');
 const testSuiteRouter = require('./routes/TestSuiteRouter');
+const testCaseRouter = require('./routes/TestCaseRouter');
 
 app.use('/api/projects', projectsRouter);
 
 app.use('/api/test-states', testStatesRouter);
 
 app.use('/api/test-suites', testSuiteRouter);
+
+app.use('/api/test-cases', testCaseRouter);
+
+app.use(errorHandler);
 
 app.listen(PORT, () => {
     console.log(`Prove Report backend listening at port: ${PORT}`);
