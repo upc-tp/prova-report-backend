@@ -4,33 +4,38 @@ import { BusinessError } from "../common/business-error";
 import { ProvaConstants } from "../common/constants";
 import { StringUtils } from "../common/StringUtils";
 import { DatabaseManager } from "../database/DatabaseManager";
-import { TestSuiteSaveDTO } from "../dtos/TestSuiteSaveDTO";
-import { TestSuiteUpdateDTO } from "../dtos/TestSuiteUpdateDTO";
-import { TestSuite } from "../models/TestSuite.entity";
-import { ProjectRepository } from "../repositories/ProjectRepository";
+import { TestCaseSaveDTO } from "../dtos/TestCaseSaveDTO";
+import { TestCaseUpdateDTO } from "../dtos/TestCaseUpdateDTO";
+import { TestCase } from "../models/TestCase.entity";
+import { TestCaseRepository } from "../repositories/TestCaseRepository";
 import { TestStateRepository } from "../repositories/TestStateRepository";
 import { TestSuiteRepository } from "../repositories/TestSuiteRepository";
 
 @singleton()
-export class TestSuiteService {
+export class TestCaseService {
     _database: DatabaseManager;
 
     constructor() {
         this._database = container.resolve(DatabaseManager);
     }
 
-    async getPaged(page: number, pageSize: number, sortOrder: string = ProvaConstants.SORT_ORDER_DESC, search: string): Promise<[TestSuite[], number]> {
+    async getPaged(page: number, pageSize: number, sortOrder: string = ProvaConstants.SORT_ORDER_DESC, search: string, testCaseId: number): Promise<[TestCase[], number]> {
         try {
             const conn = await this._database.getConnection();
             const skip = (page - 1) * pageSize;
-            const testSuiteRepo = conn.getCustomRepository(TestSuiteRepository);
-            const qb = testSuiteRepo.createQueryBuilder("t")
+            const testCaseRepo = conn.getCustomRepository(TestCaseRepository);
+            const qb = testCaseRepo.createQueryBuilder("t")
                 .innerJoinAndSelect('t.testState', 'ts')
-                .innerJoinAndSelect('t.project', 'p')
+                .innerJoinAndSelect('t.testSuite', 'tst')
                 .where(`t.deleted_at is null`);
             if (search) {
                 qb.andWhere(`concat(t.title,t.description) like '%${search}%'`);
             }
+
+            if (testCaseId) {
+                qb.andWhere(`t.test_suite_id = ${testCaseId}`);
+            }
+
             qb.orderBy({
                 "t.id": sortOrder as any
             });
@@ -46,41 +51,41 @@ export class TestSuiteService {
         }
     }
 
-    async getById(id: number): Promise<TestSuite> {
+    async getById(id: number): Promise<TestCase> {
         try {
             const conn = await this._database.getConnection();
-            const testSuiteRepo = conn.getCustomRepository(TestSuiteRepository);
-            const suite = await testSuiteRepo.findOne({ id }, {
+            const testCaseRepo = conn.getCustomRepository(TestCaseRepository);
+            const testCase = await testCaseRepo.findOne({ id }, {
                 where: {
                     deletedAt: null,
                 },
                 relations: [
-                    "project",
+                    "testSuite",
                     "testState",
                 ],
                 withDeleted: true
             });
-            return suite;
+            return testCase;
         } catch (error) {
             console.error(error);
             return Promise.reject(error);
         }
     }
 
-    async save(dto: TestSuiteSaveDTO): Promise<TestSuite> {
+    async save(dto: TestCaseSaveDTO): Promise<TestCase> {
         try {
             const conn = await this._database.getConnection();
-            const entity = plainToClass(TestSuite, dto);
+            const entity = plainToClass(TestCase, dto);
             return await conn.transaction(async transactionalEntityManager => {
-                const projectRepo = transactionalEntityManager.getCustomRepository(ProjectRepository);
+                const testCaseRepo = transactionalEntityManager.getCustomRepository(TestCaseRepository);
                 const testSuiteRepo = transactionalEntityManager.getCustomRepository(TestSuiteRepository);
                 const testStateRepo = transactionalEntityManager.getCustomRepository(TestStateRepository);
-                const project = await projectRepo.findOne(dto.projectId);
-                if (!project) {
-                    const notFoundError = new BusinessError(StringUtils.format(ProvaConstants.MESSAGE_RESPONSE_NOT_FOUND, 'Projects', dto.projectId.toString()), 404);
+                const testSuite = await testSuiteRepo.findOne(dto.testSuiteId);
+                if (!testSuite) {
+                    const notFoundError = new BusinessError(StringUtils.format(ProvaConstants.MESSAGE_RESPONSE_NOT_FOUND, 'Test Suites', dto.testSuiteId.toString()), 404);
                     return Promise.reject(notFoundError);
                 }
-                entity.project = project;
+                entity.testSuite = testSuite;
                 const stateId = ProvaConstants.TEST_STATE_NOT_EXECUTED;
                 const state = await testStateRepo.findOne(stateId);
                 if (!state) {
@@ -88,11 +93,11 @@ export class TestSuiteService {
                     return Promise.reject(notFoundError);
                 }
                 entity.testState = state;
-                console.log("Creating test suite:");
+                console.log("Creating test case:");
                 console.log(entity);
-                const testSuite = testSuiteRepo.save(entity);
-                console.log("Test Suite saved successfully");
-                return testSuite;
+                const testCase = testCaseRepo.save(entity);
+                console.log("Test case saved successfully");
+                return testCase;
             }).catch(error => {
                 return Promise.reject(error);
             });
@@ -102,23 +107,23 @@ export class TestSuiteService {
         }
     }
 
-    async update(id: number, dto: TestSuiteUpdateDTO): Promise<TestSuite> {
+    async update(id: number, dto: TestCaseUpdateDTO): Promise<TestCase> {
         try {
             const conn = await this._database.getConnection();
             return await conn.transaction(async transactionalEntityManager => {
-                const testSuiteRepo = transactionalEntityManager.getCustomRepository(TestSuiteRepository);
-                const entity = await testSuiteRepo.findOne(id);
+                const testCaseRepo = transactionalEntityManager.getCustomRepository(TestCaseRepository);
+                const entity = await testCaseRepo.findOne(id);
                 if (!entity) {
-                    const notFoundError = new BusinessError(StringUtils.format(ProvaConstants.MESSAGE_RESPONSE_NOT_FOUND, 'Test Suites', id.toString()), 404);
+                    const notFoundError = new BusinessError(StringUtils.format(ProvaConstants.MESSAGE_RESPONSE_NOT_FOUND, 'Test Cases', id.toString()), 404);
                     return Promise.reject(notFoundError);
                 }
-                console.log("Updating test suite:");
+                console.log("Updating test case:");
                 entity.title = dto.title;
                 entity.description = dto.description;
                 console.log(entity);
-                const testSuite = await testSuiteRepo.save(entity);
-                console.log("Test Suite updated successfully");
-                return testSuite;
+                const testCase = await testCaseRepo.save(entity);
+                console.log("Test case updated successfully");
+                return testCase;
             }).catch(error => {
                 return Promise.reject(error);
             });
