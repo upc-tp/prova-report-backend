@@ -15,33 +15,36 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.TestSuiteService = void 0;
+exports.TestCaseService = void 0;
 const class_transformer_1 = require("class-transformer");
 const tsyringe_1 = require("tsyringe");
 const business_error_1 = require("../common/business-error");
 const constants_1 = require("../common/constants");
 const StringUtils_1 = require("../common/StringUtils");
 const DatabaseManager_1 = require("../database/DatabaseManager");
-const TestSuite_entity_1 = require("../models/TestSuite.entity");
-const ProjectRepository_1 = require("../repositories/ProjectRepository");
+const TestCase_entity_1 = require("../models/TestCase.entity");
+const TestCaseRepository_1 = require("../repositories/TestCaseRepository");
 const TestStateRepository_1 = require("../repositories/TestStateRepository");
 const TestSuiteRepository_1 = require("../repositories/TestSuiteRepository");
-let TestSuiteService = class TestSuiteService {
+let TestCaseService = class TestCaseService {
     constructor() {
         this._database = tsyringe_1.container.resolve(DatabaseManager_1.DatabaseManager);
     }
-    getPaged(page, pageSize, sortOrder = constants_1.ProvaConstants.SORT_ORDER_DESC, search) {
+    getPaged(page, pageSize, sortOrder = constants_1.ProvaConstants.SORT_ORDER_DESC, search, testCaseId) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 const conn = yield this._database.getConnection();
                 const skip = (page - 1) * pageSize;
-                const testSuiteRepo = conn.getCustomRepository(TestSuiteRepository_1.TestSuiteRepository);
-                const qb = testSuiteRepo.createQueryBuilder("t")
+                const testCaseRepo = conn.getCustomRepository(TestCaseRepository_1.TestCaseRepository);
+                const qb = testCaseRepo.createQueryBuilder("t")
                     .innerJoinAndSelect('t.testState', 'ts')
-                    .innerJoinAndSelect('t.project', 'p')
+                    .innerJoinAndSelect('t.testSuite', 'tst')
                     .where(`t.deleted_at is null`);
                 if (search) {
                     qb.andWhere(`concat(t.title,t.description) like '%${search}%'`);
+                }
+                if (testCaseId) {
+                    qb.andWhere(`t.test_suite_id = ${testCaseId}`);
                 }
                 qb.orderBy({
                     "t.id": sortOrder
@@ -63,18 +66,18 @@ let TestSuiteService = class TestSuiteService {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 const conn = yield this._database.getConnection();
-                const testSuiteRepo = conn.getCustomRepository(TestSuiteRepository_1.TestSuiteRepository);
-                const suite = yield testSuiteRepo.findOne({ id }, {
+                const testCaseRepo = conn.getCustomRepository(TestCaseRepository_1.TestCaseRepository);
+                const testCase = yield testCaseRepo.findOne({ id }, {
                     where: {
                         deletedAt: null,
                     },
                     relations: [
-                        "project",
+                        "testSuite",
                         "testState",
                     ],
                     withDeleted: true
                 });
-                return suite;
+                return testCase;
             }
             catch (error) {
                 console.error(error);
@@ -86,17 +89,17 @@ let TestSuiteService = class TestSuiteService {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 const conn = yield this._database.getConnection();
-                const entity = (0, class_transformer_1.plainToClass)(TestSuite_entity_1.TestSuite, dto);
+                const entity = (0, class_transformer_1.plainToClass)(TestCase_entity_1.TestCase, dto);
                 return yield conn.transaction((transactionalEntityManager) => __awaiter(this, void 0, void 0, function* () {
-                    const projectRepo = transactionalEntityManager.getCustomRepository(ProjectRepository_1.ProjectRepository);
+                    const testCaseRepo = transactionalEntityManager.getCustomRepository(TestCaseRepository_1.TestCaseRepository);
                     const testSuiteRepo = transactionalEntityManager.getCustomRepository(TestSuiteRepository_1.TestSuiteRepository);
                     const testStateRepo = transactionalEntityManager.getCustomRepository(TestStateRepository_1.TestStateRepository);
-                    const project = yield projectRepo.findOne(dto.projectId);
-                    if (!project) {
-                        const notFoundError = new business_error_1.BusinessError(StringUtils_1.StringUtils.format(constants_1.ProvaConstants.MESSAGE_RESPONSE_NOT_FOUND, 'Projects', dto.projectId.toString()), 404);
+                    const testSuite = yield testSuiteRepo.findOne(dto.testSuiteId);
+                    if (!testSuite) {
+                        const notFoundError = new business_error_1.BusinessError(StringUtils_1.StringUtils.format(constants_1.ProvaConstants.MESSAGE_RESPONSE_NOT_FOUND, 'Test Suites', dto.testSuiteId.toString()), 404);
                         return Promise.reject(notFoundError);
                     }
-                    entity.project = project;
+                    entity.testSuite = testSuite;
                     const stateId = constants_1.ProvaConstants.TEST_STATE_NOT_EXECUTED;
                     const state = yield testStateRepo.findOne(stateId);
                     if (!state) {
@@ -104,11 +107,11 @@ let TestSuiteService = class TestSuiteService {
                         return Promise.reject(notFoundError);
                     }
                     entity.testState = state;
-                    console.log("Creating test suite:");
+                    console.log("Creating test case:");
                     console.log(entity);
-                    const testSuite = testSuiteRepo.save(entity);
-                    console.log("Test Suite saved successfully");
-                    return testSuite;
+                    const testCase = testCaseRepo.save(entity);
+                    console.log("Test case saved successfully");
+                    return testCase;
                 })).catch(error => {
                     return Promise.reject(error);
                 });
@@ -124,19 +127,19 @@ let TestSuiteService = class TestSuiteService {
             try {
                 const conn = yield this._database.getConnection();
                 return yield conn.transaction((transactionalEntityManager) => __awaiter(this, void 0, void 0, function* () {
-                    const testSuiteRepo = transactionalEntityManager.getCustomRepository(TestSuiteRepository_1.TestSuiteRepository);
-                    const entity = yield testSuiteRepo.findOne(id);
+                    const testCaseRepo = transactionalEntityManager.getCustomRepository(TestCaseRepository_1.TestCaseRepository);
+                    const entity = yield testCaseRepo.findOne(id);
                     if (!entity) {
-                        const notFoundError = new business_error_1.BusinessError(StringUtils_1.StringUtils.format(constants_1.ProvaConstants.MESSAGE_RESPONSE_NOT_FOUND, 'Test Suites', id.toString()), 404);
+                        const notFoundError = new business_error_1.BusinessError(StringUtils_1.StringUtils.format(constants_1.ProvaConstants.MESSAGE_RESPONSE_NOT_FOUND, 'Test Cases', id.toString()), 404);
                         return Promise.reject(notFoundError);
                     }
-                    console.log("Updating test suite:");
+                    console.log("Updating test case:");
                     entity.title = dto.title;
                     entity.description = dto.description;
                     console.log(entity);
-                    const testSuite = yield testSuiteRepo.save(entity);
-                    console.log("Test Suite updated successfully");
-                    return testSuite;
+                    const testCase = yield testCaseRepo.save(entity);
+                    console.log("Test case updated successfully");
+                    return testCase;
                 })).catch(error => {
                     return Promise.reject(error);
                 });
@@ -148,8 +151,8 @@ let TestSuiteService = class TestSuiteService {
         });
     }
 };
-TestSuiteService = __decorate([
+TestCaseService = __decorate([
     (0, tsyringe_1.singleton)()
-], TestSuiteService);
-exports.TestSuiteService = TestSuiteService;
-//# sourceMappingURL=TestSuiteService.js.map
+], TestCaseService);
+exports.TestCaseService = TestCaseService;
+//# sourceMappingURL=TestCaseService.js.map
