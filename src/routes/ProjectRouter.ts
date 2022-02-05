@@ -9,11 +9,12 @@ import { ResultResponse, SingleResponse } from "../lib/common/responses";
 import { StringUtils } from "../lib/common/StringUtils";
 import { ProjectSaveDTO } from "../lib/dtos/ProjectSaveDTO";
 import { ProjectService } from "../lib/services/ProjectService";
+import { authorize } from '../lib/middlewares/authorize';
 
 const _projectService = container.resolve(ProjectService);
 const router = express.Router();
 
-router.get('/', async (req: Request, res: Response, next: NextFunction) => {
+router.get('/', authorize(['Admin', 'Tester']) , async (req: Request, res: Response, next: NextFunction) => {
     try {
         let page = +req.query.page;
         let pageSize = +req.query.pageSize;
@@ -46,7 +47,7 @@ router.get('/:id', async (req: Request, res: Response, next: NextFunction) => {
     }
 });
 
-router.post('/', async (req: Request, res: Response, next: NextFunction) => {
+router.post('/', authorize(['Tester']), async (req: Request, res: Response, next: NextFunction) => {
     try {
         const dto: ProjectSaveDTO = plainToClass(ProjectSaveDTO, req.body);
         const errors = await validate(dto);

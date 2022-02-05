@@ -18,6 +18,8 @@ export class ProvaConstants {
     public static readonly VALIDATION_MESSAGE_FIXED_LENGTH: string = "$property: should have $constraint1 characters.";
     public static readonly VALIDATION_MESSAGE_IS_NOT_EMPTY: string = "$property should not be empty";
 
+    public static readonly MESSAGE_RESPONSE_LOGIN : string = "Ha iniciado sesión satisfactoriamente.";
+
     //#endregion
     
     //#region Defaults
