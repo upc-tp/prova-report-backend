@@ -1,5 +1,5 @@
 import { IsInt, IsString } from "class-validator";
-import { ProvaConstants } from "../common/constants";
+import { ProvaConstants } from "../../common/constants";
 
 export class TestSuiteUpdateDTO {
 

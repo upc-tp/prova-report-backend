@@ -1,6 +1,8 @@
 import { Request, Response, NextFunction } from "express";
 import jwt = require('jsonwebtoken');
+import { container } from "tsyringe";
 import { BusinessError } from "../common/business-error";
+import { UserClaims } from "../interfaces/UserClaims";
 
 export async function authenticateJWT(req: Request, res: Response, next: NextFunction) {
     try {
@@ -10,6 +12,9 @@ export async function authenticateJWT(req: Request, res: Response, next: NextFun
             try {
                 const userPayload = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
                 req['user'] = userPayload;
+                const claims = container.resolve(UserClaims);
+                claims.payload = userPayload;
+                console.log("User Claims =>", claims);
                 next();
             } catch (error) {
                 throw new BusinessError('Lo sentimos, su sesión ha expirado. Vuelva a ingresar.', 403);

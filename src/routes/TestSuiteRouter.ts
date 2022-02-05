@@ -7,8 +7,9 @@ import { BusinessError } from '../lib/common/business-error';
 import { ProvaConstants } from '../lib/common/constants';
 import { ResultResponse, SingleResponse } from '../lib/common/responses';
 import { StringUtils } from '../lib/common/StringUtils';
-import { TestSuiteSaveDTO } from '../lib/dtos/TestSuiteSaveDTO';
-import { TestSuiteUpdateDTO } from '../lib/dtos/TestSuiteUpdateDTO';
+import { TestSuiteSaveDTO } from '../lib/dtos/test-suite/TestSuiteSaveDTO';
+import { TestSuiteUpdateDTO } from '../lib/dtos/test-suite/TestSuiteUpdateDTO';
+import { authorize } from '../lib/middlewares/authorize';
 import { TestSuiteService } from '../lib/services/TestSuiteService';
 
 const _testSuiteService = container.resolve(TestSuiteService);
@@ -49,7 +50,7 @@ router.get('/:id', async (req: Request, res: Response, next: NextFunction) => {
     }
 });
 
-router.post('/', async (req: Request, res: Response, next: NextFunction) => {
+router.post('/', authorize(['Admin']), async (req: Request, res: Response, next: NextFunction) => {
     try {
         const dto: TestSuiteSaveDTO = plainToClass(TestSuiteSaveDTO, req.body);
         const errors = await validate(dto);
@@ -65,7 +66,7 @@ router.post('/', async (req: Request, res: Response, next: NextFunction) => {
     }
 });
 
-router.put('/:id', async (req: Request, res: Response, next: NextFunction) => {
+router.put('/:id', authorize(['Admin']), async (req: Request, res: Response, next: NextFunction) => {
     try {
         const id = +req.params.id;
         const dto: TestSuiteUpdateDTO = plainToClass(TestSuiteUpdateDTO, req.body);

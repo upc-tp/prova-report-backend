@@ -35,6 +35,7 @@ export class AuthService {
                     throw new BusinessError('La clave ingresada es incorrecta.', 400);
                 }
                 const payload = {
+                    uid: user.id,
                     email: user.email,
                     role: user.role,
                     firstName: user.firstName,
