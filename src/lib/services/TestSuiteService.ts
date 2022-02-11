@@ -4,8 +4,9 @@ import { BusinessError } from "../common/business-error";
 import { ProvaConstants } from "../common/constants";
 import { StringUtils } from "../common/StringUtils";
 import { DatabaseManager } from "../database/DatabaseManager";
-import { TestSuiteSaveDTO } from "../dtos/TestSuiteSaveDTO";
-import { TestSuiteUpdateDTO } from "../dtos/TestSuiteUpdateDTO";
+import { TestSuiteSaveDTO } from "../dtos/test-suite/TestSuiteSaveDTO";
+import { TestSuiteUpdateDTO } from "../dtos/test-suite/TestSuiteUpdateDTO";
+import { UserClaims } from "../interfaces/UserClaims";
 import { TestSuite } from "../models/TestSuite.entity";
 import { ProjectRepository } from "../repositories/ProjectRepository";
 import { TestStateRepository } from "../repositories/TestStateRepository";
@@ -27,7 +28,13 @@ export class TestSuiteService {
             const qb = testSuiteRepo.createQueryBuilder("t")
                 .innerJoinAndSelect('t.testState', 'ts')
                 .innerJoinAndSelect('t.project', 'p')
+                .leftJoin("users_projects", "up", "up.project_id = p.id")
                 .where(`t.deleted_at is null`);
+
+            const userClaims = container.resolve(UserClaims);
+            if(userClaims.payload.uid) {
+                qb.andWhere(`up.user_id = ${userClaims.payload.uid}`);
+            }
             if (search) {
                 qb.andWhere(`concat(t.title,t.description) like '%${search}%'`);
             }

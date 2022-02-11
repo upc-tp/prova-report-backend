@@ -5,6 +5,7 @@ import { ProvaConstants } from "../common/constants";
 import { StringUtils } from "../common/StringUtils";
 import { DatabaseManager } from "../database/DatabaseManager";
 import { ProjectSaveDTO } from "../dtos/ProjectSaveDTO";
+import { UserClaims } from "../interfaces/UserClaims";
 import { Project } from "../models/Project.entity";
 import { ProjectRepository } from "../repositories/ProjectRepository";
 
@@ -22,11 +23,17 @@ export class ProjectService {
             const conn = await this._database.getConnection();
             const skip = (page - 1) * pageSize;
             const projectRepo = conn.getCustomRepository(ProjectRepository);
+            const userClaims = container.resolve(UserClaims);
             const qb = projectRepo.createQueryBuilder("p")
+                .leftJoin("users_projects", "up", "up.project_id = p.id")
                 .where(`p.deleted_at is null`);
             if (search) {
                 qb.andWhere(`concat(p.title,p.description) like '%${search}%'`);
             }
+            if(userClaims.payload.uid) {
+                qb.andWhere(`up.user_id = ${userClaims.payload.uid}`);
+            }
+
             qb.orderBy({
                 "p.id": sortOrder as any
             });

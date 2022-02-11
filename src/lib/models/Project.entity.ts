@@ -1,5 +1,6 @@
-import { Column, Entity, PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 import { AuditEntity } from "./AuditEntity.entity";
+import { UserProject } from "./UserProject.entity";
 
 @Entity({
     name: 'projects'
@@ -9,6 +10,9 @@ export class Project extends AuditEntity {
         type: 'int'
     })
     id: number;
+
+    @OneToMany(() => UserProject, up => up.project)
+    userProjects: UserProject[];
 
     @Column({
         type: 'varchar',

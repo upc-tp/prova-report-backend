@@ -7,8 +7,9 @@ import { BusinessError } from '../lib/common/business-error';
 import { ProvaConstants } from '../lib/common/constants';
 import { ResultResponse, SingleResponse } from '../lib/common/responses';
 import { StringUtils } from '../lib/common/StringUtils';
-import { TestCaseSaveDTO } from '../lib/dtos/TestCaseSaveDTO';
-import { TestCaseUpdateDTO } from '../lib/dtos/TestCaseUpdateDTO';
+import { TestCaseSaveDTO } from '../lib/dtos/test-case/TestCaseSaveDTO';
+import { TestCaseUpdateDTO } from '../lib/dtos/test-case/TestCaseUpdateDTO';
+import { authorize } from '../lib/middlewares/authorize';
 import { TestCaseService } from "../lib/services/TestCaseService";
 
 
@@ -50,7 +51,7 @@ router.get('/:id', async (req: Request, res: Response, next: NextFunction) => {
     }
 });
 
-router.post('/', async (req: Request, res: Response, next: NextFunction) => {
+router.post('/', authorize(['Admin']), async (req: Request, res: Response, next: NextFunction) => {
     try {
         const dto: TestCaseSaveDTO = plainToClass(TestCaseSaveDTO, req.body);
         const errors = await validate(dto);
@@ -66,7 +67,7 @@ router.post('/', async (req: Request, res: Response, next: NextFunction) => {
     }
 });
 
-router.put('/:id', async (req: Request, res: Response, next: NextFunction) => {
+router.put('/:id', authorize(['Admin']), async (req: Request, res: Response, next: NextFunction) => {
     try {
         const id = +req.params.id;
         const dto: TestCaseUpdateDTO = plainToClass(TestCaseUpdateDTO, req.body);
