@@ -1,3 +1,4 @@
+import { container } from 'tsyringe';
 import {
   Column,
   CreateDateColumn,
@@ -8,6 +9,7 @@ import {
   UpdateDateColumn,
   UpdateEvent,
 } from 'typeorm';
+import { UserClaims } from '../interfaces/UserClaims';
 
 
 @EventSubscriber()
@@ -53,10 +55,12 @@ export abstract class AuditEntity implements EntitySubscriberInterface {
   deletedBy: string;
 
   beforeInsert(event: InsertEvent<any>) {
-    event.entity.createdBy = 'backend-dev';//container.resolve(UserClaims).userName;
+    const userClaims = container.resolve(UserClaims);
+    event.entity.createdBy = userClaims.payload.email;
   }
 
   beforeUpdate(event: UpdateEvent<any>) {
-    event.entity.modifiedBy = 'backend-dev';//container.resolve(UserClaims).userName;
+    const userClaims = container.resolve(UserClaims);
+    event.entity.modifiedBy = userClaims.payload.email;
   }
 }
