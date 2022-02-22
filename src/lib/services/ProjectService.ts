@@ -7,7 +7,10 @@ import { DatabaseManager } from "../database/DatabaseManager";
 import { ProjectSaveDTO } from "../dtos/ProjectSaveDTO";
 import { UserClaims } from "../interfaces/UserClaims";
 import { Project } from "../models/Project.entity";
+import { UserProject } from "../models/UserProject.entity";
 import { ProjectRepository } from "../repositories/ProjectRepository";
+import { UserProjectRepository } from "../repositories/UserProjectRepository";
+import { UserRepository } from "../repositories/UserRepository";
 
 @singleton()
 export class ProjectService {
@@ -72,10 +75,24 @@ export class ProjectService {
             const entity = plainToClass(Project, dto);
             return await conn.transaction(async transactionalEntityManager => {
                 const projectRepo = transactionalEntityManager.getCustomRepository(ProjectRepository);
+                const userProjectRepo = transactionalEntityManager.getCustomRepository(UserProjectRepository);
+                const userRepo = transactionalEntityManager.getCustomRepository(UserRepository);
                 console.log("Creating test project:");
                 console.log(entity);
-                const project = projectRepo.save(entity);
+                const project = await projectRepo.save(entity);
                 console.log("Project saved successfully");
+                console.log("Assigning user to project");
+                const userClaims = container.resolve(UserClaims);
+                const user = await userRepo.findOne(userClaims.payload.uid);
+                if (!user) {
+                    throw new BusinessError('Lo sentimos, su sesión ha expirado. Vuelva a ingresar.', 403);
+                }
+                const userProject = new UserProject();
+                userProject.accessType = 'Owner';
+                userProject.user = user;
+                userProject.project = project;
+                await userProjectRepo.save(userProject);
+                console.log("User assigned to project successfully");
                 return project;
             }).catch(error => {
                 return Promise.reject(error);

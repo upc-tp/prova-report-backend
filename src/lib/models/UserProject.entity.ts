@@ -1,4 +1,4 @@
-import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
 import { AuditEntity } from "./AuditEntity.entity";
 import { Project } from "./Project.entity";
 import { User } from "./User.entity";
@@ -13,9 +13,17 @@ export class UserProject extends AuditEntity {
     id: number;
 
     @ManyToOne(() => User, user => user.userProjects)
+    @JoinColumn({
+        name: 'user_id',
+        referencedColumnName: 'id'
+    })
     user: User;
 
     @ManyToOne(() => Project, project => project.userProjects)
+    @JoinColumn({
+        name: 'project_id',
+        referencedColumnName: 'id'
+    })
     project: Project;
 
     @Column({

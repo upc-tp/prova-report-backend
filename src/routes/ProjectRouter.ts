@@ -47,7 +47,7 @@ router.get('/:id', async (req: Request, res: Response, next: NextFunction) => {
     }
 });
 
-router.post('/', authorize(['Admin']), authorize(['Tester']), async (req: Request, res: Response, next: NextFunction) => {
+router.post('/', authorize(['Admin']), async (req: Request, res: Response, next: NextFunction) => {
     try {
         const dto: ProjectSaveDTO = plainToClass(ProjectSaveDTO, req.body);
         const errors = await validate(dto);
