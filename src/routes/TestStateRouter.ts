@@ -15,7 +15,7 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
         const page = 1;
         const [result, count] = await _testStateService.getAll();
         const pageSize = count;
-        const message = StringUtils.format(ProvaConstants.MESSAGE_RESPONSE_GET_SUCCESS, 'Test States');
+        const message = StringUtils.format(ProvaConstants.MESSAGE_RESPONSE_GET_SUCCESS, 'Estado');
         const response = ResultResponse(page, pageSize, count, message, true, result);
         res.status(200).send(response);
     } catch (error) {

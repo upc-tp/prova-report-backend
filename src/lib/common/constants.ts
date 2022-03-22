@@ -2,21 +2,21 @@
 export class ProvaConstants {
     //#region Custom Messages
     
-    public static readonly MESSAGE_RESPONSE_GET_SUCCESS : string = "{0}: Retrieved successfully";
-    public static readonly MESSAGE_RESPONSE_POST_SUCCESS : string = "{0}: Created successfully";
-    public static readonly MESSAGE_RESPONSE_PUT_SUCCESS : string = "{0}: Modified successfully";
-    public static readonly MESSAGE_RESPONSE_DELETE_SUCCESS : string = "{0}: Deleted successfully";
-    public static readonly MESSAGE_RESPONSE_NOT_FOUND : string = "Element {0} with id: {1} not found";
+    public static readonly MESSAGE_RESPONSE_GET_SUCCESS : string = "{0}: Obtenido satisfactoriamente";
+    public static readonly MESSAGE_RESPONSE_POST_SUCCESS : string = "{0}: Registrado satisfactoriamente";
+    public static readonly MESSAGE_RESPONSE_PUT_SUCCESS : string = "{0}: Actualizado satisfactoriamente";
+    public static readonly MESSAGE_RESPONSE_DELETE_SUCCESS : string = "{0}: Eliminado satifactoriamente";
+    public static readonly MESSAGE_RESPONSE_NOT_FOUND : string = "El objeto {0} con id: {1} no se ha encontrado";
 
-    public static readonly VALIDATION_MESSAGE_IS_STRING: string = "$property should be text";
-    public static readonly VALIDATION_MESSAGE_IS_FLOAT: string = "$property should be float";
-    public static readonly VALIDATION_MESSAGE_IS_BOOLEAN: string = "$property should be boolean";
-    public static readonly VALIDATION_MESSAGE_IS_INT: string = "$property should be integer";
-    public static readonly VALIDATION_MESSAGE_IS_EMAIL: string = "$property should be email";
-    public static readonly VALIDATION_MESSAGE_IS_ARRAY: string = "$property should be array";
-    public static readonly VALIDATION_MESSAGE_IS_DATE_STRING: string = "$property should be date (ISO String)";
-    public static readonly VALIDATION_MESSAGE_FIXED_LENGTH: string = "$property: should have $constraint1 characters.";
-    public static readonly VALIDATION_MESSAGE_IS_NOT_EMPTY: string = "$property should not be empty";
+    public static readonly VALIDATION_MESSAGE_IS_STRING: string = "$property debe ser texto";
+    public static readonly VALIDATION_MESSAGE_IS_FLOAT: string = "$property debe ser flotante";
+    public static readonly VALIDATION_MESSAGE_IS_BOOLEAN: string = "$property debe ser booleano";
+    public static readonly VALIDATION_MESSAGE_IS_INT: string = "$property debe ser entero";
+    public static readonly VALIDATION_MESSAGE_IS_EMAIL: string = "$property debe ser un email válido";
+    public static readonly VALIDATION_MESSAGE_IS_ARRAY: string = "$property debe ser un array";
+    public static readonly VALIDATION_MESSAGE_IS_DATE_STRING: string = "$property debe ser una fecha (ISO String)";
+    public static readonly VALIDATION_MESSAGE_FIXED_LENGTH: string = "$property: debe tener $constraint1 caracteres.";
+    public static readonly VALIDATION_MESSAGE_IS_NOT_EMPTY: string = "$property no debe estar vacío";
 
     public static readonly MESSAGE_RESPONSE_LOGIN : string = "Ha iniciado sesión satisfactoriamente.";
 
