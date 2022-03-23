@@ -27,7 +27,7 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
             page = 1;
             pageSize = count;
         }
-        const message = StringUtils.format(ProvaConstants.MESSAGE_RESPONSE_GET_SUCCESS, 'Test Suites');
+        const message = StringUtils.format(ProvaConstants.MESSAGE_RESPONSE_GET_SUCCESS, 'Suite de prueba');
         const response = ResultResponse(page, pageSize, count, message, true, result);
         res.status(200).send(response);
     } catch (error) {
@@ -40,9 +40,9 @@ router.get('/:id', async (req: Request, res: Response, next: NextFunction) => {
         const id = +req.params.id;
         const result = await _testSuiteService.getById(id);
         if(!result) {
-            throw new BusinessError(StringUtils.format(ProvaConstants.MESSAGE_RESPONSE_NOT_FOUND, 'Test Suites', id.toString()), 404);
+            throw new BusinessError(StringUtils.format(ProvaConstants.MESSAGE_RESPONSE_NOT_FOUND, 'Suite de prueba', id.toString()), 404);
         }
-        const message = StringUtils.format(ProvaConstants.MESSAGE_RESPONSE_GET_SUCCESS, 'Test Suites');
+        const message = StringUtils.format(ProvaConstants.MESSAGE_RESPONSE_GET_SUCCESS, 'Suite de prueba');
         const response = SingleResponse(message, true, result);
         res.status(200).send(response);
     } catch (error) {
@@ -58,7 +58,7 @@ router.post('/', authorize(['Admin']), async (req: Request, res: Response, next:
             return next(errors);
         }
         const result = await _testSuiteService.save(dto);
-        const message = StringUtils.format(ProvaConstants.MESSAGE_RESPONSE_POST_SUCCESS, 'Test Suites');
+        const message = StringUtils.format(ProvaConstants.MESSAGE_RESPONSE_POST_SUCCESS, 'Suite de prueba');
         const response = SingleResponse(message, true, result);
         res.status(201).send(response);
     } catch (error) {
@@ -75,7 +75,7 @@ router.put('/:id', authorize(['Admin']), async (req: Request, res: Response, nex
             return next(errors);
         }
         const result = await _testSuiteService.update(id, dto);
-        const message = StringUtils.format(ProvaConstants.MESSAGE_RESPONSE_PUT_SUCCESS, 'Test Suites');
+        const message = StringUtils.format(ProvaConstants.MESSAGE_RESPONSE_PUT_SUCCESS, 'Suite de prueba');
         const response = SingleResponse(message, true, result);
         res.status(200).send(response);
     } catch (error) {

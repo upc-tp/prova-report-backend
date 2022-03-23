@@ -3,12 +3,11 @@ import { plainToClass } from "class-transformer";
 import { validate } from "class-validator";
 import { Request, Response, NextFunction } from "express";
 import { container } from "tsyringe";
-import { BusinessError } from "../lib/common/business-error";
 import { ProvaConstants } from "../lib/common/constants";
 import { ResultResponse, SingleResponse } from "../lib/common/responses";
-import { StringUtils } from "../lib/common/StringUtils";
 import { LoginDTO } from '../lib/dtos/LoginDTO';
 import { AuthService } from '../lib/services/AuthService';
+import { RegisterDTO } from '../lib/dtos/RegisterDTO';
 
 const _authService = container.resolve(AuthService);
 const router = express.Router();
@@ -22,6 +21,22 @@ router.post('/login', async (req: Request, res: Response, next: NextFunction) =>
         }
         const result = await _authService.login(dto);
         const message = ProvaConstants.MESSAGE_RESPONSE_LOGIN;
+        const response = SingleResponse(message, true, result);
+        res.status(200).send(response);
+    } catch (error) {
+        return next(error);
+    }
+});
+
+router.post('/register', async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const dto: RegisterDTO = plainToClass(RegisterDTO, req.body);
+        const errors = await validate(dto);
+        if (errors.length > 0) {
+            return next(errors);
+        }
+        const result = await _authService.register(dto);
+        const message = ProvaConstants.MESSAGE_RESPONSE_REGISTER;
         const response = SingleResponse(message, true, result);
         res.status(200).send(response);
     } catch (error) {

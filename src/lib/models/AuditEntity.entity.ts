@@ -10,6 +10,7 @@ import {
   UpdateEvent,
 } from 'typeorm';
 import { UserClaims } from '../interfaces/UserClaims';
+import { User } from './User.entity';
 
 
 @EventSubscriber()
@@ -56,7 +57,9 @@ export abstract class AuditEntity implements EntitySubscriberInterface {
 
   beforeInsert(event: InsertEvent<any>) {
     const userClaims = container.resolve(UserClaims);
-    event.entity.createdBy = userClaims.payload.email;
+    if (!(event.entity instanceof User)) { // When insert a user there are no claims yet.
+      event.entity.createdBy = userClaims.payload.email;
+    }
   }
 
   beforeUpdate(event: UpdateEvent<any>) {

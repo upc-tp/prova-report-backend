@@ -2,8 +2,11 @@ import bcrypt = require("bcrypt");
 import jwt = require("jsonwebtoken");
 import { container, singleton } from "tsyringe";
 import { BusinessError } from "../common/business-error";
+import { ProvaConstants } from "../common/constants";
 import { DatabaseManager } from "../database/DatabaseManager";
 import { LoginDTO } from "../dtos/LoginDTO";
+import { RegisterDTO } from "../dtos/RegisterDTO";
+import { User } from "../models/User.entity";
 import { UserRepository } from "../repositories/UserRepository";
 
 @singleton()
@@ -14,6 +17,9 @@ export class AuthService {
     constructor() {
         this._database = container.resolve(DatabaseManager);
         this.login = this.login.bind(this);
+        this.register = this.register.bind(this);
+        this.generateAccessTokenFromRefreshToken = this.generateAccessTokenFromRefreshToken.bind(this);
+        this.logout = this.logout.bind(this);
     }
 
     async login(dto: LoginDTO): Promise<any> {
@@ -51,6 +57,41 @@ export class AuthService {
                 return response;
             }).catch(error => {
                 return Promise.reject(error);
+            });
+        } catch (error) {
+            return Promise.reject(error);
+        }
+    }
+
+    async register(dto: RegisterDTO): Promise<any> {
+        try {
+            const conn = await this._database.getConnection();
+            return await conn.transaction(async transactionalEntityManager => {
+                const userRepo = transactionalEntityManager.getCustomRepository(UserRepository);
+                const user = new User();
+                user.role = ProvaConstants.USER_ROLE_ADMIN;
+                user.firstName = dto.firstName;
+                user.lastName = dto.lastName;
+                user.email = dto.email;
+                const saltRounds = +process.env.ACCESS_SALT_ROUNDS;
+                const encrypted = await bcrypt.hash(dto.password, saltRounds);
+                user.password = encrypted;
+                let entity = await userRepo.save(user);
+                const payload = {
+                    uid: entity.id,
+                    email: entity.email,
+                    role: entity.role,
+                    firstName: entity.firstName,
+                    lastName: entity.lastName
+                };
+                const accessToken = jwt.sign(payload, process.env.ACCESS_TOKEN_SECRET, { expiresIn: process.env.ACCESS_EXPIRES_IN });
+                const refreshToken = jwt.sign(payload, process.env.REFRESH_TOKEN_SECRET);
+                this.refreshTokens.push(refreshToken);
+                const response = {
+                    accessToken,
+                    refreshToken
+                };
+                return response;
             });
         } catch (error) {
             return Promise.reject(error);
