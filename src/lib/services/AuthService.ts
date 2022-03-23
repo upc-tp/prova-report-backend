@@ -17,6 +17,9 @@ export class AuthService {
     constructor() {
         this._database = container.resolve(DatabaseManager);
         this.login = this.login.bind(this);
+        this.register = this.register.bind(this);
+        this.generateAccessTokenFromRefreshToken = this.generateAccessTokenFromRefreshToken.bind(this);
+        this.logout = this.logout.bind(this);
     }
 
     async login(dto: LoginDTO): Promise<any> {
