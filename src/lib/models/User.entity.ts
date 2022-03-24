@@ -14,7 +14,7 @@ export class User extends AuditEntity {
 
     @OneToMany(() => UserProject, up => up.user)
     @JoinColumn({
-        name: 'test_state_id',
+        name: 'user_id',
         referencedColumnName: 'id'
     })
     userProjects: UserProject[];
