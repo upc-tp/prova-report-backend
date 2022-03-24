@@ -57,6 +57,10 @@ export class ProjectService {
             const conn = await this._database.getConnection();
             const projectRepo = conn.getCustomRepository(ProjectRepository);
             const project = await projectRepo.findOne({ id }, {
+                relations: [
+                    "userProjects",
+                    "userProjects.user"
+                ],
                 where: {
                     deletedAt: null,
                 },

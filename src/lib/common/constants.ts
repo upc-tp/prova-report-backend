@@ -48,6 +48,7 @@ export class ProvaConstants {
     public static readonly TEST_STATE_BROKEN = 5;
 
     public static readonly USER_ROLE_ADMIN = "Admin";
+    public static readonly USER_ROLE_TESTER= "Tester";
 
     //#endregion
 }
