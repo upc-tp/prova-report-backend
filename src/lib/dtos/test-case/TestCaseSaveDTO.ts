@@ -8,6 +8,16 @@ export class TestCaseSaveDTO {
     })
     testSuiteId: number;
 
+    @IsInt({
+        message: ProvaConstants.VALIDATION_MESSAGE_IS_INT
+    })
+    priorityId: number;
+
+    @IsInt({
+        message: ProvaConstants.VALIDATION_MESSAGE_IS_INT
+    })
+    severityId: number;
+
     @IsString({
         message: ProvaConstants.VALIDATION_MESSAGE_IS_STRING
     })

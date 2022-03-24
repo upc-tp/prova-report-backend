@@ -27,6 +27,8 @@ const projectsRouter = require('./routes/ProjectRouter');
 const testStatesRouter = require('./routes/TestStateRouter');
 const testSuiteRouter = require('./routes/TestSuiteRouter');
 const testCaseRouter = require('./routes/TestCaseRouter');
+const priorityRouter = require('./routes/PriorityRouter');
+const severityRouter = require('./routes/SeverityRouter');
 
 app.use('/api', authRouter);
 
@@ -37,6 +39,10 @@ app.use('/api/test-states', authenticateJWT, testStatesRouter);
 app.use('/api/test-suites', authenticateJWT, testSuiteRouter);
 
 app.use('/api/test-cases', authenticateJWT, testCaseRouter);
+
+app.use('/api/priorities', authenticateJWT, priorityRouter);
+
+app.use('/api/severities', authenticateJWT, severityRouter);
 
 app.use(errorHandler);
 

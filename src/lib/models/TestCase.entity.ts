@@ -1,5 +1,7 @@
 import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
 import { AuditEntity } from "./AuditEntity.entity";
+import { Priority } from "./Priority.entity";
+import { Severity } from "./Severity.entity";
 import { TestState } from "./TestState.entity";
 import { TestSuite } from "./TestSuite.entity";
 
@@ -25,6 +27,20 @@ export class TestCase extends AuditEntity {
         referencedColumnName: 'id'
     })
     testState: TestState;
+
+    @ManyToOne(type => Priority)
+    @JoinColumn({
+        name: 'priority_id',
+        referencedColumnName: 'id'
+    })
+    priority: Priority;
+
+    @ManyToOne(type => Severity)
+    @JoinColumn({
+        name: 'severity_id',
+        referencedColumnName: 'id'
+    })
+    severity: Severity;
 
     @Column({
         type: 'varchar',
