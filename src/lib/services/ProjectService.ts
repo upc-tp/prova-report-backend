@@ -1,12 +1,16 @@
+import bcrypt = require("bcrypt");
 import { plainToClass } from "class-transformer";
 import { container, singleton } from "tsyringe";
 import { BusinessError } from "../common/business-error";
 import { ProvaConstants } from "../common/constants";
 import { StringUtils } from "../common/StringUtils";
 import { DatabaseManager } from "../database/DatabaseManager";
+import { CollaboratorDTO } from "../dtos/CollaboratorDTO";
 import { ProjectSaveDTO } from "../dtos/ProjectSaveDTO";
+import { RegisterDTO } from "../dtos/RegisterDTO";
 import { UserClaims } from "../interfaces/UserClaims";
 import { Project } from "../models/Project.entity";
+import { User } from "../models/User.entity";
 import { UserProject } from "../models/UserProject.entity";
 import { ProjectRepository } from "../repositories/ProjectRepository";
 import { UserProjectRepository } from "../repositories/UserProjectRepository";
@@ -52,15 +56,51 @@ export class ProjectService {
         }
     }
 
+    async getCollaborators(page: number, pageSize: number, sortOrder: string = ProvaConstants.SORT_ORDER_DESC, search: string, projectId: number = null): Promise<[CollaboratorDTO[], number]> {
+        try {
+            const conn = await this._database.getConnection();
+            const skip = (page - 1) * pageSize;
+            const userRepo = conn.getCustomRepository(UserRepository);
+            const qb = userRepo.createQueryBuilder("u")
+                .innerJoin("users_projects", "up", "up.user_id = u.id")
+                .where(`u.deleted_at is null`);
+            if (search) {
+                qb.andWhere(`concat(u.first_name,u.last_name,u.email) like '%${search}%'`);
+            }
+            if(projectId) {
+                qb.andWhere(`up.project_id = ${projectId}`);
+            }
+
+            qb.orderBy({
+                "u.id": sortOrder as any
+            });
+            if (page && pageSize) {
+                qb.skip(skip);
+                qb.take(pageSize);
+            }
+            const [users, count] = await qb.getManyAndCount();
+            const collaborators = users.map(u => {
+                const collaborator : CollaboratorDTO = {
+                    uid: u.id,
+                    role: u.role,
+                    firstName: u.firstName,
+                    lastName: u.lastName,
+                    email: u.email
+                };
+                return collaborator;
+            });
+            return [collaborators, count];
+        } catch (error) {
+            console.error(error);
+            return Promise.reject(error);
+        }
+    }
+
     async getById(id: number): Promise<Project> {
         try {
             const conn = await this._database.getConnection();
             const projectRepo = conn.getCustomRepository(ProjectRepository);
             const project = await projectRepo.findOne({ id }, {
-                relations: [
-                    "userProjects",
-                    "userProjects.user"
-                ],
                 where: {
                     deletedAt: null,
                 },
@@ -98,6 +138,47 @@ export class ProjectService {
                 await userProjectRepo.save(userProject);
                 console.log("User assigned to project successfully");
                 return project;
+            }).catch(error => {
+                return Promise.reject(error);
+            });
+        } catch (error) {
+            console.error(error);
+            return Promise.reject(error);
+        }
+    }
+
+    async addCollaborator(projectId: number, dto: RegisterDTO): Promise<CollaboratorDTO> {
+        try {
+            const conn = await this._database.getConnection();
+            return await conn.transaction(async transactionalEntityManager => {
+                const userRepo = transactionalEntityManager.getCustomRepository(UserRepository);
+                const projectRepo = transactionalEntityManager.getCustomRepository(ProjectRepository);
+                const userProjectRepo = transactionalEntityManager.getCustomRepository(UserProjectRepository);
+                const user = plainToClass(User, dto);
+                user.role = ProvaConstants.USER_ROLE_TESTER;
+                const saltRounds = +process.env.ACCESS_SALT_ROUNDS;
+                const encrypted = await bcrypt.hash(dto.password, saltRounds);
+                user.password = encrypted;
+                const entity = await userRepo.save(user);
+                const project = await projectRepo.findOne(projectId);
+                if (!project) {
+                    const notFoundError = new BusinessError(StringUtils.format(ProvaConstants.MESSAGE_RESPONSE_NOT_FOUND, 'Projects', projectId.toString()), 404);
+                    return Promise.reject(notFoundError);
+                }
+                const userProject = new UserProject();
+                userProject.accessType = 'Collaborator';
+                userProject.project = project;
+                userProject.user = entity;
+                await userProjectRepo.save(userProject);
+                
+                const collaborator : CollaboratorDTO = {
+                    uid: entity.id,
+                    firstName: entity.firstName,
+                    lastName: entity.lastName,
+                    email: entity.email,
+                    role: entity.role
+                };
+                return collaborator;
             }).catch(error => {
                 return Promise.reject(error);
             });
