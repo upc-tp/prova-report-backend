@@ -27,4 +27,9 @@ export class TestCaseSaveDTO {
         message: ProvaConstants.VALIDATION_MESSAGE_IS_STRING
     })
     description: string;
+
+    @IsInt({
+        message: ProvaConstants.VALIDATION_MESSAGE_IS_INT
+    })
+    userId: number;
 }
