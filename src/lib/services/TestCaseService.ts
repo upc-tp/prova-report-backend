@@ -68,6 +68,9 @@ export class TestCaseService {
                 relations: [
                     "testSuite",
                     "testState",
+                    "severity",
+                    "priority",
+                    "userInCharge",
                 ],
                 withDeleted: true
             });
@@ -143,13 +146,36 @@ export class TestCaseService {
             return await conn.transaction(async transactionalEntityManager => {
                 const testCaseRepo = transactionalEntityManager.getCustomRepository(TestCaseRepository);
                 const entity = await testCaseRepo.findOne(id);
+                const severityRepo = transactionalEntityManager.getCustomRepository(SeverityRepository);
+                const priorityRepo = transactionalEntityManager.getCustomRepository(PriorityRepository);
+                const userRepo = transactionalEntityManager.getCustomRepository(UserRepository);
+
                 if (!entity) {
                     const notFoundError = new BusinessError(StringUtils.format(ProvaConstants.MESSAGE_RESPONSE_NOT_FOUND, 'Test Cases', id.toString()), 404);
+                    return Promise.reject(notFoundError);
+                }
+                const user = await userRepo.findOne(dto.userId);
+                if(!user) {
+                    const notFoundError = new BusinessError(StringUtils.format(ProvaConstants.MESSAGE_RESPONSE_NOT_FOUND, 'User', dto.priorityId.toString()), 404);
+                    return Promise.reject(notFoundError);
+                }
+
+                const priority = await priorityRepo.findOne(dto.priorityId);
+                if (!priority) {
+                    const notFoundError = new BusinessError(StringUtils.format(ProvaConstants.MESSAGE_RESPONSE_NOT_FOUND, 'Priority', dto.priorityId.toString()), 404);
+                    return Promise.reject(notFoundError);
+                }
+                const severity = await severityRepo.findOne(dto.severityId);
+                if (!severity) {
+                    const notFoundError = new BusinessError(StringUtils.format(ProvaConstants.MESSAGE_RESPONSE_NOT_FOUND, 'Severity', dto.severityId.toString()), 404);
                     return Promise.reject(notFoundError);
                 }
                 console.log("Updating test case:");
                 entity.title = dto.title;
                 entity.description = dto.description;
+                entity.priority = priority;
+                entity.severity = severity;
+                entity.userInCharge = user;
                 console.log(entity);
                 const testCase = await testCaseRepo.save(entity);
                 console.log("Test case updated successfully");
