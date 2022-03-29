@@ -17,4 +17,14 @@ export class TestCaseUpdateDTO {
         message: ProvaConstants.VALIDATION_MESSAGE_IS_INT
     })
     userId: number;
+
+    @IsInt({
+        message: ProvaConstants.VALIDATION_MESSAGE_IS_INT
+    })
+    priorityId: number;
+
+    @IsInt({
+        message: ProvaConstants.VALIDATION_MESSAGE_IS_INT
+    })
+    severityId: number;
 }
