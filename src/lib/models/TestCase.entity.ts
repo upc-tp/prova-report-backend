@@ -4,6 +4,7 @@ import { Priority } from "./Priority.entity";
 import { Severity } from "./Severity.entity";
 import { TestState } from "./TestState.entity";
 import { TestSuite } from "./TestSuite.entity";
+import {User} from "./User.entity";
 
 @Entity({
     name: 'test_cases'
@@ -41,6 +42,13 @@ export class TestCase extends AuditEntity {
         referencedColumnName: 'id'
     })
     severity: Severity;
+
+    @ManyToOne(type => User)
+    @JoinColumn({
+        name: 'user_charge_id',
+        referencedColumnName: 'id'
+    })
+    userInCharge: User;
 
     @Column({
         type: 'varchar',
