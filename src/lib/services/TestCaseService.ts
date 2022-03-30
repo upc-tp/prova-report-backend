@@ -1,9 +1,11 @@
-import { plainToClass } from "class-transformer";
+import { classToClass, classToPlain, plainToClass, plainToClassFromExist } from "class-transformer";
 import { container, singleton } from "tsyringe";
 import { BusinessError } from "../common/business-error";
 import { ProvaConstants } from "../common/constants";
 import { StringUtils } from "../common/StringUtils";
 import { DatabaseManager } from "../database/DatabaseManager";
+import { CollaboratorDTO } from "../dtos/CollaboratorDTO";
+import { TestCaseDTO } from "../dtos/test-case/TestCaseDTO";
 import { TestCaseSaveDTO } from "../dtos/test-case/TestCaseSaveDTO";
 import { TestCaseUpdateDTO } from "../dtos/test-case/TestCaseUpdateDTO";
 import { TestCase } from "../models/TestCase.entity";
@@ -57,7 +59,7 @@ export class TestCaseService {
         }
     }
 
-    async getById(id: number): Promise<TestCase> {
+    async getById(id: number): Promise<any> {
         try {
             const conn = await this._database.getConnection();
             const testCaseRepo = conn.getCustomRepository(TestCaseRepository);
@@ -74,14 +76,24 @@ export class TestCaseService {
                 ],
                 withDeleted: true
             });
-            return testCase;
+            let testCaseDto = plainToClass(TestCaseDTO, testCase);
+            if (testCase.userInCharge) {
+                testCaseDto.userInCharge = {
+                    uid: testCase.userInCharge.id,
+                    email: testCase.userInCharge.email,
+                    firstName: testCase.userInCharge.firstName,
+                    lastName: testCase.userInCharge.lastName,
+                    role: testCase.userInCharge.role
+                }
+            }
+            return testCaseDto;
         } catch (error) {
             console.error(error);
             return Promise.reject(error);
         }
     }
 
-    async save(dto: TestCaseSaveDTO): Promise<TestCase> {
+    async save(dto: TestCaseSaveDTO): Promise<any> {
         try {
             const conn = await this._database.getConnection();
             const entity = plainToClass(TestCase, dto);
@@ -105,13 +117,11 @@ export class TestCaseService {
                     const notFoundError = new BusinessError(StringUtils.format(ProvaConstants.MESSAGE_RESPONSE_NOT_FOUND, 'Test States', stateId.toString()), 404);
                     return Promise.reject(notFoundError);
                 }
-
-                const user = await userRepo.findOne(dto.userId);
-                if(!user) {
-                    const notFoundError = new BusinessError(StringUtils.format(ProvaConstants.MESSAGE_RESPONSE_NOT_FOUND, 'User', dto.priorityId.toString()), 404);
-                    return Promise.reject(notFoundError);
-                }
-
+                const user = await userRepo.findOne({
+                    where: {
+                        id: dto.userId
+                    }
+                });
                 const priority = await priorityRepo.findOne(dto.priorityId);
                 if (!priority) {
                     const notFoundError = new BusinessError(StringUtils.format(ProvaConstants.MESSAGE_RESPONSE_NOT_FOUND, 'Priority', dto.priorityId.toString()), 404);
@@ -128,9 +138,20 @@ export class TestCaseService {
                 entity.userInCharge = user;
                 console.log("Creating test case:");
                 console.log(entity);
-                const testCase = testCaseRepo.save(entity);
+                const testCase = await testCaseRepo.save(entity);
                 console.log("Test case saved successfully");
-                return testCase;
+                const entityDto = plainToClass(TestCaseDTO, testCase);
+                if (user) {
+                    const userDto: CollaboratorDTO = {
+                        uid: user.id,
+                        email: user.email,
+                        firstName: user.firstName,
+                        lastName: user.lastName,
+                        role: user.role
+                    }
+                    entityDto.userInCharge = userDto;
+                }
+                return entityDto;
             }).catch(error => {
                 return Promise.reject(error);
             });
@@ -140,7 +161,7 @@ export class TestCaseService {
         }
     }
 
-    async update(id: number, dto: TestCaseUpdateDTO): Promise<TestCase> {
+    async update(id: number, dto: TestCaseUpdateDTO): Promise<any> {
         try {
             const conn = await this._database.getConnection();
             return await conn.transaction(async transactionalEntityManager => {
@@ -154,12 +175,11 @@ export class TestCaseService {
                     const notFoundError = new BusinessError(StringUtils.format(ProvaConstants.MESSAGE_RESPONSE_NOT_FOUND, 'Test Cases', id.toString()), 404);
                     return Promise.reject(notFoundError);
                 }
-                const user = await userRepo.findOne(dto.userId);
-                if(!user) {
-                    const notFoundError = new BusinessError(StringUtils.format(ProvaConstants.MESSAGE_RESPONSE_NOT_FOUND, 'User', dto.priorityId.toString()), 404);
-                    return Promise.reject(notFoundError);
-                }
-
+                const user = await userRepo.findOne({
+                    where: {
+                        id: dto.userId
+                    }
+                });
                 const priority = await priorityRepo.findOne(dto.priorityId);
                 if (!priority) {
                     const notFoundError = new BusinessError(StringUtils.format(ProvaConstants.MESSAGE_RESPONSE_NOT_FOUND, 'Priority', dto.priorityId.toString()), 404);
@@ -179,7 +199,18 @@ export class TestCaseService {
                 console.log(entity);
                 const testCase = await testCaseRepo.save(entity);
                 console.log("Test case updated successfully");
-                return testCase;
+                const entityDto = plainToClass(TestCaseDTO, testCase);
+                if (user) {
+                    const userDto: CollaboratorDTO = {
+                        uid: user.id,
+                        email: user.email,
+                        firstName: user.firstName,
+                        lastName: user.lastName,
+                        role: user.role
+                    }
+                    entityDto.userInCharge = userDto;
+                }
+                return entityDto;
             }).catch(error => {
                 return Promise.reject(error);
             });
