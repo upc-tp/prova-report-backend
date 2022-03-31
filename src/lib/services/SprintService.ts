@@ -67,10 +67,18 @@ export class SprintService {
                    return Promise.reject(notFoundError);
                }
                entity.project = project;
+               const order = ++project.lastSprint;
+               entity.order = order;
+               entity.title = `Sprint ${order}`;
                console.log("Creating new sprint: ");
                console.log(entity);
-               const sprint = sprintRepo.save(entity);
+               const sprint = await sprintRepo.save(entity);
                console.log("Sprint saved successfully");
+               console.log("Updating last sprint of project: ", project.title);
+               await projectRepo.update(project.id, {
+                   lastSprint: order
+               });
+               console.log("Project updated successfully");
                return sprint;
             }).catch(error => {
                 return Promise.reject(error);
@@ -92,7 +100,6 @@ export class SprintService {
                     return Promise.reject(notFoundError);
                 }
                 console.log("Updating sprint: ");
-                entity.title = dto.title;
                 entity.description = dto.description;
                 console.log(entity);
                 const sprint = await sprintRepo.save(entity);

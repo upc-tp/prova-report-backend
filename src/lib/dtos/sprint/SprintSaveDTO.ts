@@ -10,10 +10,5 @@ export class SprintSaveDTO{
     @IsString({
         message: ProvaConstants.VALIDATION_MESSAGE_IS_STRING
     })
-    title: string;
-
-    @IsString({
-        message: ProvaConstants.VALIDATION_MESSAGE_IS_STRING
-    })
     description: string;
 }

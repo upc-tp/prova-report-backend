@@ -19,6 +19,11 @@ export class Sprint extends AuditEntity{
     project: Project;
 
     @Column({
+        type: 'int'
+    })
+    order: number;
+
+    @Column({
         type: 'varchar',
         length: 64
     })
