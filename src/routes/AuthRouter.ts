@@ -8,6 +8,8 @@ import { ResultResponse, SingleResponse } from "../lib/common/responses";
 import { LoginDTO } from '../lib/dtos/LoginDTO';
 import { AuthService } from '../lib/services/AuthService';
 import { RegisterDTO } from '../lib/dtos/RegisterDTO';
+import { ResetPasswordDTO } from '../lib/dtos/ResetPasswordDTO';
+import { authenticateJWT } from '../lib/middlewares/authenticate';
 
 const _authService = container.resolve(AuthService);
 const router = express.Router();
@@ -77,6 +79,24 @@ router.post('/logout', async (req: Request, res: Response, next: NextFunction) =
         await _authService.logout(refreshToken);
         const message = 'Ha cerrado sesión satisfactoriamente';
         const response = SingleResponse(message, true, null);
+        res.status(200).send(response);
+    } catch (error) {
+        return next(error);
+    }
+});
+
+
+router.put('/reset-password',authenticateJWT, async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const dto: ResetPasswordDTO = plainToClass(ResetPasswordDTO, req.body);
+        const errors = await validate(dto);
+        if (errors.length > 0) {
+            return next(errors);
+        }
+
+        const result = await _authService.resetPassword(dto);
+        const message = ProvaConstants.MESSAGE_RESPONSE_RESET_PASSWORD;
+        const response = SingleResponse(message, true, result);
         res.status(200).send(response);
     } catch (error) {
         return next(error);
