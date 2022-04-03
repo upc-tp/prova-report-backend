@@ -1,5 +1,6 @@
 import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 import { AuditEntity } from "./AuditEntity.entity";
+import { Sprint } from "./Sprint.entity.ts";
 
 @Entity({
     name: 'user_stories'
@@ -9,6 +10,13 @@ export class UserStory extends AuditEntity {
         type: 'int'
     })
     id: number;
+
+    @ManyToOne(type => Sprint)
+    @JoinColumn({
+        name: 'sprint_id',
+        referencedColumnName: 'id'
+    })
+    sprint: Sprint;
 
     @Column({
         type: 'varchar',

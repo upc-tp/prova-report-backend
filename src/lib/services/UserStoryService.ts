@@ -16,6 +16,36 @@ export class UserStoryService {
         this._database = container.resolve(DatabaseManager);
     }
 
+    async getPaged(page: number, pageSize: number, sortOrder: string = ProvaConstants.SORT_ORDER_DESC, search: string, sprintId: number = null): Promise<[UserStory[], number]> {
+        try {
+            const conn = await this._database.getConnection();
+            const skip = (page - 1) * pageSize;
+            const usertStoryRepo = conn.getCustomRepository(UserStoryRepository);
+            const qb = usertStoryRepo.createQueryBuilder("u")
+                .innerJoinAndSelect('u.sprint', 's')
+                .where(`u.deleted_at is null`);
+            if (search) {
+                qb.andWhere(`concat(u.title,u.description) like '%${search}%'`);
+            }
+
+            if(sprintId) {
+                qb.andWhere(`u.sprint_id = ${sprintId}`);
+            }
+
+            qb.orderBy({
+                "u.id": sortOrder as any
+            });
+            if (page && pageSize) {
+                qb.skip(skip);
+                qb.take(pageSize);
+            }
+            const result = await qb.getManyAndCount();
+            return result;
+        } catch (error) {
+            console.error(error);
+            return Promise.reject(error);
+        }
+    }
     async getAll(): Promise<[UserStory[], number]> {
         try {
             const conn = await this._database.getConnection();
@@ -36,6 +66,9 @@ export class UserStoryService {
                 where: {
                     deletedAt: null,
                 },
+                relations: [
+                    "sprint"
+                ],
                 withDeleted: true
             });
             return userStory;
@@ -51,10 +84,17 @@ export class UserStoryService {
             const entity = plainToClass(UserStory, dto);
             return await conn.transaction(async transactionalEntityManager => {
                 const userStoryRepo = transactionalEntityManager.getCustomRepository(UserStoryRepository);
+                const sprintRepo = transactionalEntityManager.getCustomRepository(SprintsRepository);
+                const sprint = await sprintRepo.findOne(dto.sprintId);
+                if (!sprint) {
+                    const notFoundError = new BusinessError(StringUtils.format(ProvaConstants.MESSAGE_RESPONSE_NOT_FOUND, 'Projects', dto.sprintId.toString()), 404);
+                    return Promise.reject(notFoundError);
+                }
+                entity.sprint = sprint;
                 console.log("Creating user story:");
                 console.log(entity);
                 const userStory = await userStoryRepo.save(entity);
-                console.log("User Story savec succesfully");
+                console.log("User Story saved succesfully");
                 return userStory;
             }).catch(error => {
                 return Promise.reject(error);
