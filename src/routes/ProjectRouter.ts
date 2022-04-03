@@ -39,7 +39,7 @@ router.get('/:id', async (req: Request, res: Response, next: NextFunction) => {
         const result = await _projectService.getById(id);
         if(!result) {
             throw new BusinessError(StringUtils.format(ProvaConstants.MESSAGE_RESPONSE_NOT_FOUND, 'Proyecto de prueba', id.toString()), 404);
-        }
+        } 
         const message = StringUtils.format(ProvaConstants.MESSAGE_RESPONSE_GET_SUCCESS, 'Proyecto de prueba');
         const response = SingleResponse(message, true, result);
         res.status(200).send(response);
