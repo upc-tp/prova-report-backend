@@ -15,6 +15,7 @@ import { UserProject } from "../models/UserProject.entity";
 import { ProjectRepository } from "../repositories/ProjectRepository";
 import { UserProjectRepository } from "../repositories/UserProjectRepository";
 import { UserRepository } from "../repositories/UserRepository";
+import { transporter } from "../common/mailer";
 
 @singleton()
 export class ProjectService {
@@ -178,6 +179,19 @@ export class ProjectService {
                     email: entity.email,
                     role: entity.role
                 };
+                try {
+                    await transporter.sendMail({
+                        from: '"Prova Report" <' + process.env.SMTP_FROM_EMAIL + '>',
+                        to: entity.email,
+                        subject: "Te han incluido en un nuevo proyecto!",
+                        html: `
+                        <h1 style="color: #2e6c80;">Hola ${entity.firstName}, ahora eres colaborador de ${project.title}</h1>
+                            <h3 style="color: #2e6c80;">Puedes acceder al proyecto desde este link: <a href="${'http://' + process.env.CLIENT_URL + 'detalle-proyectos?projectId=' + project.id}">Proyecto</a></h3>
+                        `,
+                    });
+                } catch (error) {
+                    console.error(error);
+                }
                 return collaborator;
             }).catch(error => {
                 return Promise.reject(error);
