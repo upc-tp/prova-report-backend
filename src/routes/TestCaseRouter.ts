@@ -112,7 +112,7 @@ router.post('/', authorize(['Admin']), async (req: Request, res: Response, next:
 router.post('/:id/test-executions', authorize(['Admin', 'Tester']), async (req: Request, res: Response, next: NextFunction) => {
     try {
         const id = +req.params.id;
-        const comments = req.params.comments;
+        const comments = req.query.comments as string;
         const buffer = req.body;
         const xml = buffer.toString();
         const result = await _testExecutionService.save(id, xml, comments);
