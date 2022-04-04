@@ -17,6 +17,7 @@ export class TestCaseDTO {
     id: number;
     title: string;
     description: string;
+	lastExecution: number;
     testState: TestState;
     testSuite: TestSuite;
 }

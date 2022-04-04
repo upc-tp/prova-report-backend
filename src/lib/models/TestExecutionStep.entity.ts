@@ -2,6 +2,7 @@ import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from "t
 import { AuditEntity } from "./AuditEntity.entity";
 import { TestExecution } from "./TestExecution.entity";
 import { TestState } from "./TestState.entity";
+import {StepLog} from "../interfaces/StepLog";
 
 @Entity({
     name: 'test_execution_steps'
@@ -25,6 +26,12 @@ export class TestExecutionStep extends AuditEntity {
         referencedColumnName: 'id'
     })
     testState: TestState;
+
+    @Column({
+        type: 'json',
+        name: 'logs'
+    })
+    logs: StepLog[];
 
     @Column({
         type: 'varchar',

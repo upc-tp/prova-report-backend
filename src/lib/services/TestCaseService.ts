@@ -60,7 +60,7 @@ export class TestCaseService {
         }
     }
 
-    async getById(id: number): Promise<any> {
+    async getById(id: number): Promise<TestCaseDTO> {
         try {
             const conn = await this._database.getConnection();
             const testCaseRepo = conn.getCustomRepository(TestCaseRepository);

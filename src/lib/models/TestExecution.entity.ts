@@ -32,8 +32,10 @@ export class TestExecution extends AuditEntity {
     })
     testCase: TestCase;
 
-    @OneToMany(() => TestExecutionStep, s => s.testExecution)
-    steps: TestExecutionStep[];
+    @OneToMany(() => TestExecutionStep, s => s.testExecution, {
+        cascade: true
+    })
+    testExecutionSteps: TestExecutionStep[];
 
     @Column({
         type: 'datetime',

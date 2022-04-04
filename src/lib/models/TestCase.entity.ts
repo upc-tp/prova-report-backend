@@ -65,4 +65,10 @@ export class TestCase extends AuditEntity {
         length: 128
     })
     description: string;
+
+    @Column({
+        type: 'int',
+        name: 'last_execution'
+    })
+    lastExecution: number;
 }

@@ -16,6 +16,12 @@ const app = express();
 
 //#region Middleware
 
+app.use(express.raw({
+    type: [
+        'application/xml',
+        'text/plain'
+    ]
+}))
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cors());
@@ -30,6 +36,7 @@ const testCaseRouter = require('./routes/TestCaseRouter');
 const priorityRouter = require('./routes/PriorityRouter');
 const severityRouter = require('./routes/SeverityRouter');
 const sprintRouter = require('./routes/SprintRouter');
+const testExecutionRouter = require('./routes/TestExecutionRouter');
 
 app.use('/api', authRouter);
 
@@ -40,6 +47,8 @@ app.use('/api/test-states', authenticateJWT, testStatesRouter);
 app.use('/api/test-suites', authenticateJWT, testSuiteRouter);
 
 app.use('/api/test-cases', authenticateJWT, testCaseRouter);
+
+app.use('/api/test-executions', authenticateJWT, testExecutionRouter);
 
 app.use('/api/priorities', authenticateJWT, priorityRouter);
 
