@@ -98,7 +98,7 @@ export class TestExecutionService {
         }
     }
 
-    async save(testCaseId: number, xml: string): Promise<TestExecution> {
+    async save(testCaseId: number, xml: string, comments: string): Promise<TestExecution> {
         try {
             const conn = await this._database.getConnection();
             return await conn.transaction(async transactionalEntityManager => {
@@ -154,6 +154,7 @@ export class TestExecutionService {
                 testCase.testState = testState;
                 entity.testCase = testCase;
                 entity.testState = testState;
+                entity.comments = comments;
 
                 const keywords = testElement.findall('kw');
                 const testExecutionSteps = await Promise.all(keywords.map(async (kw) => {
