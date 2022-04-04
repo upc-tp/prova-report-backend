@@ -186,7 +186,7 @@ export class ProjectService {
                         subject: "Te han incluido en un nuevo proyecto!",
                         html: `
                         <h1 style="color: #2e6c80;">Hola ${entity.firstName}, ahora eres colaborador de ${project.title}</h1>
-                            <h3 style="color: #2e6c80;">Puedes acceder al proyecto desde este link: <a href="${'http://' + process.env.CLIENT_URL + 'detalle-proyectos?projectId=' + project.id}">Proyecto</a></h3>
+                            <h3 style="color: #2e6c80;">Puedes acceder al proyecto desde este link: <a href="${'http://' + process.env.CLIENT_URL + '/detalle-proyectos?projectId=' + project.id}">Proyecto</a></h3>
                         `,
                     });
                 } catch (error) {
