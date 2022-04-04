@@ -51,7 +51,8 @@ export class TestExecution extends AuditEntity {
     duration: number;
 
     @Column({
-        type: 'text',
+        type: 'varchar',
+        length: 200,
         name: 'comments'
     })
     comments: string;
