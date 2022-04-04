@@ -15,6 +15,7 @@ import { TestCaseRepository } from "../repositories/TestCaseRepository";
 import { TestStateRepository } from "../repositories/TestStateRepository";
 import { TestSuiteRepository } from "../repositories/TestSuiteRepository";
 import {UserRepository} from "../repositories/UserRepository";
+import { transporter } from "../common/mailer";
 
 @singleton()
 export class TestCaseService {
@@ -59,7 +60,7 @@ export class TestCaseService {
         }
     }
 
-    async getById(id: number): Promise<any> {
+    async getById(id: number): Promise<TestCaseDTO> {
         try {
             const conn = await this._database.getConnection();
             const testCaseRepo = conn.getCustomRepository(TestCaseRepository);
@@ -104,6 +105,7 @@ export class TestCaseService {
                 const severityRepo = transactionalEntityManager.getCustomRepository(SeverityRepository);
                 const priorityRepo = transactionalEntityManager.getCustomRepository(PriorityRepository);
                 const userRepo = transactionalEntityManager.getCustomRepository(UserRepository);
+
 
                 const testSuite = await testSuiteRepo.findOne(dto.testSuiteId);
                 if (!testSuite) {
@@ -150,6 +152,22 @@ export class TestCaseService {
                         role: user.role
                     }
                     entityDto.userInCharge = userDto;
+                    try {
+                        await transporter.sendMail({
+                            from: '"Prova Report" <' + process.env.SMTP_FROM_EMAIL + '>',
+                            to: entityDto.userInCharge.email,
+                            subject: "Se te asignó un caso de prueba",
+                            html: `
+                            <h1 style="color: #2e6c80;">Hola ${entityDto.userInCharge.firstName}, te han asignado un caso de prueba</h1>
+                            <p>El nombre del caso de prueba es ${entityDto.title}</p>
+                            <p><strong>Prioridad: </strong>${entityDto.priority.name}</p>
+                            <p><strong>Severidad: </strong>${entityDto.severity.name}</p>
+                            <h3 style="color: #2e6c80;">Puedes acceder al suite de pruebas desde este link: <a href="${'http://' + process.env.CLIENT_URL + '/detalle-suite-pruebas?suiteId=' + entity.testSuite.id}">TestSuite</a></h3>
+                            `,
+                        });
+                    } catch (error) {
+                        console.error(error);
+                    }
                 }
                 return entityDto;
             }).catch(error => {
@@ -166,7 +184,11 @@ export class TestCaseService {
             const conn = await this._database.getConnection();
             return await conn.transaction(async transactionalEntityManager => {
                 const testCaseRepo = transactionalEntityManager.getCustomRepository(TestCaseRepository);
-                const entity = await testCaseRepo.findOne(id);
+                const entity = await testCaseRepo.findOne(id, {
+                    relations: [
+                        "testSuite"
+                    ]
+                });
                 const severityRepo = transactionalEntityManager.getCustomRepository(SeverityRepository);
                 const priorityRepo = transactionalEntityManager.getCustomRepository(PriorityRepository);
                 const userRepo = transactionalEntityManager.getCustomRepository(UserRepository);
@@ -209,6 +231,22 @@ export class TestCaseService {
                         role: user.role
                     }
                     entityDto.userInCharge = userDto;
+                    try {
+                        await transporter.sendMail({
+                            from: '"Prova Report" <' + process.env.SMTP_FROM_EMAIL + '>',
+                            to: entityDto.userInCharge.email,
+                            subject: "Se te asignó un caso de prueba",
+                            html: `
+                            <h1 style="color: #2e6c80;">Hola ${entityDto.userInCharge.firstName}, te han asignado un caso de prueba</h1>
+                            <p>El nombre del caso de prueba es ${entityDto.title}</p>
+                            <p><strong>Prioridad: </strong>${entityDto.priority.name}</p>
+                            <p><strong>Severidad: </strong>${entityDto.severity.name}</p>
+                            <h3 style="color: #2e6c80;">Puedes acceder al suite de pruebas desde este link: <a href="${'http://' + process.env.CLIENT_URL + '/detalle-suite-pruebas?suiteId=' + entity.testSuite.id}">TestSuite</a></h3>
+                            `,
+                        });
+                    } catch (error) {
+                        console.error(error);
+                    }
                 }
                 return entityDto;
             }).catch(error => {
