@@ -167,7 +167,7 @@ export class TestExecutionService {
                     step.name = kw.get('name');
                     step.startTime = DateUtils.convertCustomFormatToDate(start);
                     step.endTime = DateUtils.convertCustomFormatToDate(end);
-                    step.duration = DateUtils.getDifeferenceInMilliseconds(startTime, endTime);
+                    step.duration = DateUtils.getDifeferenceInMilliseconds(step.startTime, step.endTime);
                     step.testState = await testStateRepo.findOne(stateId);
                     const logsElement = kw.findall('kw');
                     step.logs = logsElement.map(kwTag => {
