@@ -112,9 +112,10 @@ router.post('/', authorize(['Admin']), async (req: Request, res: Response, next:
 router.post('/:id/test-executions', authorize(['Admin', 'Tester']), async (req: Request, res: Response, next: NextFunction) => {
     try {
         const id = +req.params.id;
+        const comments = req.params.comments;
         const buffer = req.body;
         const xml = buffer.toString();
-        const result = await _testExecutionService.save(id, xml);
+        const result = await _testExecutionService.save(id, xml, comments);
         const message = StringUtils.format(ProvaConstants.MESSAGE_RESPONSE_POST_SUCCESS, 'Ejecución');
         const response = SingleResponse(message, true, result);
         res.status(201).send(response);
