@@ -1,7 +1,8 @@
-import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 import { AuditEntity } from "./AuditEntity.entity";
 import { Priority } from "./Priority.entity";
 import { Severity } from "./Severity.entity";
+import { TestExecution } from "./TestExecution.entity";
 import { TestState } from "./TestState.entity";
 import { TestSuite } from "./TestSuite.entity";
 import {User} from "./User.entity";
@@ -28,6 +29,9 @@ export class TestCase extends AuditEntity {
         referencedColumnName: 'id'
     })
     testState: TestState;
+
+    @OneToMany(() => TestExecution, te => te.testCase)
+    testExecutions: TestExecution[];
 
     @ManyToOne(type => Priority)
     @JoinColumn({
@@ -61,4 +65,10 @@ export class TestCase extends AuditEntity {
         length: 128
     })
     description: string;
+
+    @Column({
+        type: 'int',
+        name: 'last_execution'
+    })
+    lastExecution: number;
 }

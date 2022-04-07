@@ -62,6 +62,7 @@ export abstract class AuditEntity implements EntitySubscriberInterface {
     }
   }
 
+  
   beforeUpdate(event: UpdateEvent<any>) {
     const userClaims = container.resolve(UserClaims);
     event.entity.modifiedBy = userClaims.payload.email;

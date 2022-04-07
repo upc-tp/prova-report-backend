@@ -25,4 +25,10 @@ export class Project extends AuditEntity {
         length: 128
     })
     description: string;
+
+    @Column({
+        type: 'int',
+        name: 'last_sprint'
+    })
+    lastSprint: number;
 }
