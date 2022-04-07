@@ -167,7 +167,6 @@ export class TestCaseService {
                         });
                     } catch (error) {
                         console.error(error);
-                        return Promise.reject(error);
                     }
                 }
                 return entityDto;
@@ -247,7 +246,6 @@ export class TestCaseService {
                         });
                     } catch (error) {
                         console.error(error);
-                        return Promise.reject(error);
                     }
                 }
                 return entityDto;
