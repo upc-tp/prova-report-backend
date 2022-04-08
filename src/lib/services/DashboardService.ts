@@ -40,7 +40,7 @@ export class DashboardService {
             FROM severities s;`);
 
             const testsBySeverity = await Promise.all(severities.map(async (s) => {
-                s['statutes'] = await conn.query(`SELECT t.id, t.name,
+                s['statuses'] = await conn.query(`SELECT t.id, t.name,
                 (SELECT COUNT(*)
                 FROM test_executions te
                 INNER JOIN test_cases tc

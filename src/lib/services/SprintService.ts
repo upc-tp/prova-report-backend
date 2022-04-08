@@ -67,7 +67,7 @@ export class SprintService {
                    return Promise.reject(notFoundError);
                }
                entity.project = project;
-               const order = ++project.lastSprint;
+               const order = ++project.lastVersion;
                entity.order = order;
                entity.title = `Sprint ${order}`;
                console.log("Creating new sprint: ");
@@ -76,7 +76,7 @@ export class SprintService {
                console.log("Sprint saved successfully");
                console.log("Updating last sprint of project: ", project.title);
                await projectRepo.update(project.id, {
-                   lastSprint: order
+                   lastVersion: order
                });
                console.log("Project updated successfully");
                return sprint;

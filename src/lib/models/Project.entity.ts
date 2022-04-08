@@ -28,7 +28,7 @@ export class Project extends AuditEntity {
 
     @Column({
         type: 'int',
-        name: 'last_sprint'
+        name: 'last_version'
     })
-    lastSprint: number;
+    lastVersion: number;
 }
