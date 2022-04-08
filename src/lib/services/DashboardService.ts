@@ -27,7 +27,7 @@ export class DashboardService {
             as num_tests
             FROM test_states as ts;`);
 
-            const testsBySeverity = await conn.query(`SELECT s.id, s.name,
+            const severities = await conn.query(`SELECT s.id, s.name,
             (SELECT COUNT(*) 
             FROM test_executions te
             INNER JOIN test_cases tc
@@ -36,8 +36,25 @@ export class DashboardService {
             INNER JOIN test_suites tst
             ON tst.id = tc.test_suite_id 
             WHERE tc.severity_id = s.id
-            and tst.project_id = ${mysql.escape(projectId)}) as num_test
+            and tst.project_id = ${mysql.escape(projectId)}) as num_tests
             FROM severities s;`);
+
+            const testsBySeverity = await Promise.all(severities.map(async (s) => {
+                s['statutes'] = await conn.query(`SELECT t.id, t.name,
+                (SELECT COUNT(*)
+                FROM test_executions te
+                INNER JOIN test_cases tc
+                ON tc.id = te.test_case_id
+                and te.order = tc.last_execution
+                INNER JOIN test_suites tst
+                ON tst.id = tc.test_suite_id 
+                WHERE tst.project_id = ${mysql.escape(projectId)}
+                and tc.severity_id = ${mysql.escape(s.id)}
+                and te.test_state_id = t.id
+                ) as num_tests
+                from test_states t;`);
+                return s;
+            }));
 
             return {
                 testsBySeverity,
