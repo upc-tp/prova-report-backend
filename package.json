@@ -19,6 +19,7 @@
     "@types/express-xml-bodyparser": "^0.3.2",
     "@types/jsonwebtoken": "^8.5.8",
     "@types/morgan": "^1.9.3",
+    "@types/mysql": "^2.15.21",
     "@types/node": "^16.11.8",
     "@types/nodemailer": "^6.4.4",
     "typescript": "^4.5.2"
