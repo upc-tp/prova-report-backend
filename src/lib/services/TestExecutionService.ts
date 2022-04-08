@@ -120,9 +120,9 @@ export class TestExecutionService {
                 }
                 console.log("Updating test execution:");
                 entity.order = dto.order;
-                entity.startTime = dto.startTime;
+                /*entity.startTime = dto.startTime;
                 entity.endTime = dto.endTime;
-                entity.duration = dto.duration;
+                entity.duration = dto.duration;*/
                 console.log(entity);
                 const testExecution = await testExecutionRepo.save(entity);
                 console.log("Test execution updated");

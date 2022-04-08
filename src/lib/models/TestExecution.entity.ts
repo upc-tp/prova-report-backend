@@ -31,7 +31,7 @@ export class TestExecution extends AuditEntity {
     })
     testCase: TestCase;
 
-    @CreateDateColumn({
+    /*@CreateDateColumn({
         name: "start_time",
         type: "datetime",
     })
@@ -41,7 +41,7 @@ export class TestExecution extends AuditEntity {
         name: "end_time",
         type: "datetime",
     })
-    endTime: Date;
+    endTime: Date;*/
 
     @Column({
         type: 'int'

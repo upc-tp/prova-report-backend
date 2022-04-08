@@ -12,7 +12,7 @@ export class TestExecutionUpdateDTO {
     })
     duration: number;
 
-    @IsDate({
+    /*@IsDate({
         message: ProvaConstants.VALIDATION_MESSAGE_IS_DATE_STRING
     })
     startTime: Date;
@@ -20,5 +20,5 @@ export class TestExecutionUpdateDTO {
     @IsDate({
         message: ProvaConstants.VALIDATION_MESSAGE_IS_DATE_STRING
     })
-    endTime: Date;
+    endTime: Date;*/
 }

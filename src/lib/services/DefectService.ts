@@ -120,7 +120,7 @@ export class DefectService {
                 entity.priority = priority;
                 entity.severity = severity;
                 entity.testCase = testCase;
-
+                entity.defectState = state;
                 console.log("Creating Defect: ");
                 console.log(entity);
                 const defect = await defectRepo.save(entity);
