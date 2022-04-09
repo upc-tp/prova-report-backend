@@ -12,7 +12,7 @@ import { TestCaseUpdateDTO } from '../lib/dtos/test-case/TestCaseUpdateDTO';
 import { authorize } from '../lib/middlewares/authorize';
 import { TestCaseService } from "../lib/services/TestCaseService";
 
-import xmlparser = require('express-xml-bodyparser');
+import xmlparser = require(    'express-xml-bodyparser');
 import { TestExecutionService } from '../lib/services/TestExecutionService';
 
 
