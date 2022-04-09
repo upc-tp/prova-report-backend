@@ -35,7 +35,7 @@ const testSuiteRouter = require('./routes/TestSuiteRouter');
 const testCaseRouter = require('./routes/TestCaseRouter');
 const priorityRouter = require('./routes/PriorityRouter');
 const severityRouter = require('./routes/SeverityRouter');
-const sprintRouter = require('./routes/SprintRouter');
+const versionRouter = require('./routes/VersionRouter');
 const testExecutionRouter = require('./routes/TestExecutionRouter');
 const dashboardRouter = require('./routes/DashboardRouter');
 
@@ -55,7 +55,7 @@ app.use('/api/priorities', authenticateJWT, priorityRouter);
 
 app.use('/api/severities', authenticateJWT, severityRouter);
 
-app.use('/api/sprints', authenticateJWT, sprintRouter);
+app.use('/api/versions', authenticateJWT, versionRouter);
 
 app.use('/api/dashboard', authenticateJWT, dashboardRouter);
 

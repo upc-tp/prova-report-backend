@@ -3,9 +3,9 @@ import {AuditEntity} from "./AuditEntity.entity";
 import {Project} from "./Project.entity";
 
 @Entity({
-    name: 'sprints'
+    name: 'versions'
 })
-export class Sprint extends AuditEntity{
+export class Version extends AuditEntity{
     @PrimaryGeneratedColumn({
         type: 'int'
     })
