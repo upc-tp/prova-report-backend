@@ -1,4 +1,4 @@
-import { IsInt, IsString } from "class-validator";
+import { IsInt, IsOptional, IsString } from "class-validator";
 import internal from "stream";
 import { ProvaConstants } from "../../common/constants";
 
@@ -7,6 +7,7 @@ export class DefectSaveDTO {
     @IsInt({
         message: ProvaConstants.VALIDATION_MESSAGE_IS_INT
     })
+    @IsOptional()
     defectStateId: number;
 
     
@@ -28,6 +29,7 @@ export class DefectSaveDTO {
     @IsInt({
         message: ProvaConstants.VALIDATION_MESSAGE_IS_INT
     })
+    @IsOptional()
     testExecutionId: number;
 
     @IsString({
@@ -43,5 +45,6 @@ export class DefectSaveDTO {
     @IsInt({
         message: ProvaConstants.VALIDATION_MESSAGE_IS_STRING
     })
+    @IsOptional()
     is_fixed: number;
 }
