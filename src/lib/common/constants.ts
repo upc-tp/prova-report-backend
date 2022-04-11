@@ -19,6 +19,7 @@ export class ProvaConstants {
     public static readonly VALIDATION_MESSAGE_IS_NOT_EMPTY: string = "$property no debe estar vacío";
 
     public static readonly MESSAGE_RESPONSE_LOGIN : string = "Ha iniciado sesión satisfactoriamente.";
+    public static readonly MESSAGE_RESPONSE_RESET_PASSWORD : string = "Su contraseña ha sido actualizado satisfactoriamente.";
     public static readonly MESSAGE_RESPONSE_REGISTER: string = "Usuario registrado satisfactoriamente.";
 
     //#endregion

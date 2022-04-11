@@ -1,7 +1,8 @@
-import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 import { AuditEntity } from "./AuditEntity.entity";
-import { TestCase } from "./TestCase.entity";
 import { TestState } from "./TestState.entity";
+import { TestCase } from "./TestCase.entity";
+import { TestExecutionStep } from "./TestExecutionStep.entity";
 
 @Entity({
     name: 'test_executions'
@@ -31,20 +32,33 @@ export class TestExecution extends AuditEntity {
     })
     testCase: TestCase;
 
-    /*@CreateDateColumn({
-        name: "start_time",
-        type: "datetime",
+    @Column({
+        type: 'datetime',
+        name: 'start_time'
     })
     startTime: Date;
 
-    @CreateDateColumn({
-        name: "end_time",
-        type: "datetime",
+    @Column({
+        type: 'datetime',
+        name: 'end_time'
     })
-    endTime: Date;*/
+    endTime: Date;
 
     @Column({
-        type: 'int'
+        type: 'int',
+        name: 'duration'
     })
     duration: number;
+
+    @Column({
+        type: 'varchar',
+        length: 200,
+        name: 'comments'
+    })
+    comments: string;
+
+    @OneToMany(() => TestExecutionStep, s => s.testExecution, {
+        cascade: true
+    })
+    testExecutionSteps: TestExecutionStep[];
 }

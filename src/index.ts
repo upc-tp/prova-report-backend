@@ -16,6 +16,12 @@ const app = express();
 
 //#region Middleware
 
+app.use(express.raw({
+    type: [
+        'application/xml',
+        'text/plain'
+    ]
+}))
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cors());
@@ -31,8 +37,10 @@ const priorityRouter = require('./routes/PriorityRouter');
 const severityRouter = require('./routes/SeverityRouter');
 const sprintRouter = require('./routes/SprintRouter');
 const defectStatesRouter = require('./routes/DefectStateRouter');
-const testExecutionRouter = require ('./routes/TestExecutionRouter');
 const defectRouter = require('./routes/DefectRouter');
+const versionRouter = require('./routes/VersionRouter');
+const testExecutionRouter = require('./routes/TestExecutionRouter');
+const dashboardRouter = require('./routes/DashboardRouter');
 
 app.use('/api', authRouter);
 
@@ -44,11 +52,15 @@ app.use('/api/test-suites', authenticateJWT, testSuiteRouter);
 
 app.use('/api/test-cases', authenticateJWT, testCaseRouter);
 
+app.use('/api/test-executions', authenticateJWT, testExecutionRouter);
+
 app.use('/api/priorities', authenticateJWT, priorityRouter);
 
 app.use('/api/severities', authenticateJWT, severityRouter);
 
-app.use('/api/sprints', authenticateJWT, sprintRouter);
+app.use('/api/versions', authenticateJWT, versionRouter);
+
+app.use('/api/dashboard', authenticateJWT, dashboardRouter);
 
 app.use('/api/defect-states', authenticateJWT, defectStatesRouter);
 

@@ -6,6 +6,8 @@ import { ProvaConstants } from "../common/constants";
 import { DatabaseManager } from "../database/DatabaseManager";
 import { LoginDTO } from "../dtos/LoginDTO";
 import { RegisterDTO } from "../dtos/RegisterDTO";
+import { ResetPasswordDTO } from "../dtos/ResetPasswordDTO";
+import { UserClaims } from "../interfaces/UserClaims";
 import { User } from "../models/User.entity";
 import { UserRepository } from "../repositories/UserRepository";
 
@@ -98,6 +100,52 @@ export class AuthService {
         }
     }
 
+    async resetPassword(dto: ResetPasswordDTO): Promise<any> {
+        try {
+            const conn = await this._database.getConnection();
+            return await conn.transaction(async transactionalEntityManager => {
+                const userRepo = transactionalEntityManager.getCustomRepository(UserRepository);
+                const currentUser = container.resolve(UserClaims)
+                const user = await userRepo.findOne({
+                    where: {
+                        id: currentUser.payload.uid
+                    }
+                });
+                if(!user) {
+                    throw new BusinessError('El email ingresado es incorrecto', 404);
+                }
+                const passwordDidMatch = await bcrypt.compare(dto.password, user.password);
+                if (!passwordDidMatch) {
+                    throw new BusinessError('La clave ingresada es incorrecta.', 400);
+                }
+                const saltRounds = +process.env.ACCESS_SALT_ROUNDS;
+                const encrypted = await bcrypt.hash(dto.newPassword, saltRounds);
+                user.password = encrypted;
+                const entity = await userRepo.save(user);
+                const payload = {
+                    uid: entity.id,
+                    email: entity.email,
+                    role: entity.role,
+                    firstName: entity.firstName,
+                    lastName: entity.lastName
+                };
+                const accessToken = jwt.sign(payload, process.env.ACCESS_TOKEN_SECRET, { expiresIn: process.env.ACCESS_EXPIRES_IN });
+                const refreshToken = jwt.sign(payload, process.env.REFRESH_TOKEN_SECRET);
+                this.refreshTokens.push(refreshToken);
+                const response = {
+                    accessToken,
+                    refreshToken
+                };
+                return response;
+            }).catch(error => {
+                return Promise.reject(error);
+            });
+        } catch (error) {
+            return Promise.reject(error);
+        }
+    }
+
+
     async generateAccessTokenFromRefreshToken(refreshToken: string): Promise<string> {
         try {
             if (!refreshToken) {
@@ -114,6 +162,7 @@ export class AuthService {
         }
     }
 
+
     async logout(refreshToken: string) {
         this.refreshTokens = this.refreshTokens.filter(t => t != refreshToken);
     }
@@ -127,4 +176,5 @@ export class AuthService {
             return Promise.reject(error);
         }
     }
+
 }
