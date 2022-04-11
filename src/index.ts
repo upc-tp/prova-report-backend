@@ -35,6 +35,9 @@ const testSuiteRouter = require('./routes/TestSuiteRouter');
 const testCaseRouter = require('./routes/TestCaseRouter');
 const priorityRouter = require('./routes/PriorityRouter');
 const severityRouter = require('./routes/SeverityRouter');
+const sprintRouter = require('./routes/SprintRouter');
+const defectStatesRouter = require('./routes/DefectStateRouter');
+const defectRouter = require('./routes/DefectRouter');
 const versionRouter = require('./routes/VersionRouter');
 const testExecutionRouter = require('./routes/TestExecutionRouter');
 const dashboardRouter = require('./routes/DashboardRouter');
@@ -58,6 +61,12 @@ app.use('/api/severities', authenticateJWT, severityRouter);
 app.use('/api/versions', authenticateJWT, versionRouter);
 
 app.use('/api/dashboard', authenticateJWT, dashboardRouter);
+
+app.use('/api/defect-states', authenticateJWT, defectStatesRouter);
+
+app.use('/api/test-executions', authenticateJWT, testExecutionRouter);
+
+app.use('/api/defects', authenticateJWT, defectRouter);
 
 app.use(errorHandler);
 

@@ -156,7 +156,7 @@ export class ProjectService {
                 const projectRepo = transactionalEntityManager.getCustomRepository(ProjectRepository);
                 const userProjectRepo = transactionalEntityManager.getCustomRepository(UserProjectRepository);
                 const user = plainToClass(User, dto);
-                user.role = ProvaConstants.USER_ROLE_TESTER;
+                user.role = dto.role;
                 const saltRounds = +process.env.ACCESS_SALT_ROUNDS;
                 const encrypted = await bcrypt.hash(dto.password, saltRounds);
                 user.password = encrypted;

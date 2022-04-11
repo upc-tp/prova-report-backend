@@ -1,4 +1,4 @@
-import { IsString } from "class-validator";
+import { IsOptional, IsString } from "class-validator";
 import { ProvaConstants } from "../common/constants";
 
 export class RegisterDTO {
@@ -22,4 +22,11 @@ export class RegisterDTO {
         message: ProvaConstants.VALIDATION_MESSAGE_IS_STRING
     })
     password: string;
+
+    @IsString({
+        message: ProvaConstants.VALIDATION_MESSAGE_IS_STRING
+    })
+    @IsOptional()
+    role: 'Admin'|'Tester';
+
 }
