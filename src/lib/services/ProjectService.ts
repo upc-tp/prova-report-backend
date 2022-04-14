@@ -155,6 +155,14 @@ export class ProjectService {
                 const userRepo = transactionalEntityManager.getCustomRepository(UserRepository);
                 const projectRepo = transactionalEntityManager.getCustomRepository(ProjectRepository);
                 const userProjectRepo = transactionalEntityManager.getCustomRepository(UserProjectRepository);
+                const countEmail = await userRepo.count({
+                    where: {
+                        email: dto.email
+                    }
+                });
+                if (countEmail > 0) {
+                    throw new BusinessError("El correo electrónico ya se encuentra registrado.", 400);
+                }
                 const user = plainToClass(User, dto);
                 user.role = dto.role;
                 const saltRounds = +process.env.ACCESS_SALT_ROUNDS;

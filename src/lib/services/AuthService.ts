@@ -70,6 +70,14 @@ export class AuthService {
             const conn = await this._database.getConnection();
             return await conn.transaction(async transactionalEntityManager => {
                 const userRepo = transactionalEntityManager.getCustomRepository(UserRepository);
+                const countEmail = await userRepo.count({
+                    where: {
+                        email: dto.email
+                    }
+                });
+                if (countEmail > 0) {
+                    throw new BusinessError("El correo electrónico ya se encuentra registrado.", 400);
+                }
                 const user = new User();
                 user.role = ProvaConstants.USER_ROLE_ADMIN;
                 user.firstName = dto.firstName;
