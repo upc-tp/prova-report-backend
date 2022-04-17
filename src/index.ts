@@ -35,7 +35,6 @@ const testSuiteRouter = require('./routes/TestSuiteRouter');
 const testCaseRouter = require('./routes/TestCaseRouter');
 const priorityRouter = require('./routes/PriorityRouter');
 const severityRouter = require('./routes/SeverityRouter');
-const sprintRouter = require('./routes/SprintRouter');
 const defectStatesRouter = require('./routes/DefectStateRouter');
 const defectRouter = require('./routes/DefectRouter');
 const versionRouter = require('./routes/VersionRouter');
