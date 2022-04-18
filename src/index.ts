@@ -40,6 +40,7 @@ const defectRouter = require('./routes/DefectRouter');
 const versionRouter = require('./routes/VersionRouter');
 const testExecutionRouter = require('./routes/TestExecutionRouter');
 const dashboardRouter = require('./routes/DashboardRouter');
+const userStoryRouter = require('./routes/UserStoryRouter');
 
 app.use('/api', authRouter);
 
@@ -66,6 +67,8 @@ app.use('/api/defect-states', authenticateJWT, defectStatesRouter);
 app.use('/api/test-executions', authenticateJWT, testExecutionRouter);
 
 app.use('/api/defects', authenticateJWT, defectRouter);
+
+app.use('/api/user-stories', authenticateJWT, userStoryRouter);
 
 app.use(errorHandler);
 
