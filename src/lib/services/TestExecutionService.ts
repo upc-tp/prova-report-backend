@@ -61,6 +61,7 @@ export class TestExecutionService {
                 relations: [
                     "testState",
                     "testExecutionSteps",
+                    "testExecutionSteps.testState",
                     "testCase"
                 ],
                 withDeleted: true
@@ -87,6 +88,7 @@ export class TestExecutionService {
                 relations: [
                     "testState",
                     "testExecutionSteps",
+                    "testExecutionSteps.testState",
                     "testCase"
                 ],
                 withDeleted: true
