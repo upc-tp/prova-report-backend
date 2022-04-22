@@ -9,6 +9,7 @@ import { TestPlanRepository } from "../repositories/TestPlanRepository";
 import { TestPlan } from "../models/TestPlan.entity";
 import { TestPlanSaveDTO } from "../dtos/test-plan/TestPlanSaveDTO";
 import { TestPlanUpdateDTO } from "../dtos/test-plan/TestPlanUpdateDTO";
+import { UserClaims } from "../interfaces/UserClaims";
 
 @singleton()
 export class TestPlanService {
@@ -25,7 +26,13 @@ export class TestPlanService {
             const testPlanRepo = conn.getCustomRepository(TestPlanRepository);
             const qb = testPlanRepo.createQueryBuilder("t")
                 .innerJoinAndSelect('t.project', 'p')
+                .leftJoin("users_projects", "up", "up.project_id = p.id")
                 .where(`t.deleted_at is null`);
+                
+            const userClaims = container.resolve(UserClaims);
+            if(userClaims.payload.uid) {
+                qb.andWhere(`up.user_id = ${userClaims.payload.uid}`);
+            }
             if (search) {
                 qb.andWhere(`concat(t.title,t.description) like '%${search}%'`);
             }
