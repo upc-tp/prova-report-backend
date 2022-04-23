@@ -4,10 +4,10 @@ import { BusinessError } from "../common/business-error";
 import { ProvaConstants } from "../common/constants";
 import { StringUtils } from "../common/StringUtils";
 import { DatabaseManager } from "../database/DatabaseManager";
+import { DefectBulkUpdateDTO } from "../dtos/defect/DefectBulkUpdateDTO";
 import { DefectSaveDTO } from "../dtos/defect/DefectSaveDTO";
 import { DefectUpdateDTO } from "../dtos/defect/DefectUpdateDTO";
 import { Defect } from "../models/Defects.entity";
-import { Severity } from "../models/Severity.entity";
 import { DefectRepository } from "../repositories/DefectRepository";
 import { DefectStateRepository } from "../repositories/DefectStateRepository";
 import { PriorityRepository } from "../repositories/PriorityRepository";
@@ -23,20 +23,34 @@ export class DefectService {
         this._database = container.resolve(DatabaseManager);
     }
 
-    async getPage(page: number, pageSize: number, sortOrder: string = ProvaConstants.SORT_ORDER_DESC, search: string, testExecutionId: number = null): Promise<[Defect[], number]> {
+    async getPage(page: number, pageSize: number, sortOrder: string = ProvaConstants.SORT_ORDER_DESC, search: string, projectId: number = null, 
+        defectStateId: number = null, is_fixed: number = null): Promise<[Defect[], number]> {
         try {
             const conn = await this._database.getConnection();
             const skip = (page - 1) * pageSize;
             const defectRepo = conn.getCustomRepository(DefectRepository);
             const qb = defectRepo.createQueryBuilder("d")
-                .innerJoinAndSelect('d.defectState', 'ts')
+                .innerJoinAndSelect('d.defectState', 'ds')
                 .innerJoinAndSelect('d.testCase', 'tc')
+                .innerJoinAndSelect('tc.testSuite', 'ts')
                 .innerJoinAndSelect('d.testExecution', 'te')
                 .leftJoinAndSelect('d.priority', 'p')
                 .leftJoinAndSelect('d.severity', 's')
                 .where('d.deleted_at is null');
             if (search) {
                 qb.andWhere(`concat(d.title,d.repro_steps) like '%${search}%'`);
+            }
+
+            if (projectId) {
+                qb.andWhere(`ts.project_id = ${projectId}`);
+            }
+
+            if (defectStateId) {
+                qb.andWhere(`ds.id = ${defectStateId}`);
+            }
+
+            if (is_fixed !== null) {
+                qb.andWhere(`d.is_fixed = ${is_fixed}`);
             }
 
             qb.orderBy({
@@ -176,6 +190,46 @@ export class DefectService {
                 const defect = await defectRepo.save(entity);
                 console.log("Defect updated");
                 return defect;
+            }).catch(error => {
+                return Promise.reject(error);
+            });
+        } catch (error) {
+            console.error(error);
+            return Promise.reject(error);
+        }
+    }
+
+    async bulkUpdate(dto: DefectBulkUpdateDTO): Promise<any> {
+        try {
+            const conn = await this._database.getConnection();
+            return await conn.transaction(async transactionalEntityManager => {
+                const defectRepo = transactionalEntityManager.getCustomRepository(DefectRepository);
+                const defectStateRepo = transactionalEntityManager.getCustomRepository(DefectStateRepository);
+
+                const defectState = await defectStateRepo.findOne(dto.defectStateId);
+                if (!defectState) {
+                    const notFoundError = new BusinessError(StringUtils.format(ProvaConstants.MESSAGE_RESPONSE_NOT_FOUND, 'Defect State', dto.defectStateId.toString()), 404);
+                    return Promise.reject(notFoundError);
+                }
+
+                console.log("Bulk Update Defects");
+                let entities = await defectRepo.findByIds(dto.defectIds, {
+                    relations: [
+                        "defectState",
+                        "priority",
+                        "severity",
+                        "testCase",
+                        "testExecution"
+                    ]
+                });
+                entities = entities.map(e => {
+                    e.is_fixed = dto.is_fixed;
+                    e.defectState = defectState;
+                    return e;
+                });
+                const result = await defectRepo.save(entities);
+                console.log("Defects updated");
+                return result;
             }).catch(error => {
                 return Promise.reject(error);
             });
