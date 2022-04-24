@@ -14,8 +14,9 @@ import { SeverityRepository } from "../repositories/SeverityRepository";
 import { TestCaseRepository } from "../repositories/TestCaseRepository";
 import { TestStateRepository } from "../repositories/TestStateRepository";
 import { TestSuiteRepository } from "../repositories/TestSuiteRepository";
-import {UserRepository} from "../repositories/UserRepository";
+import { UserRepository } from "../repositories/UserRepository";
 import { transporter } from "../common/mailer";
+import { UserClaims } from "../interfaces/UserClaims";
 
 @singleton()
 export class TestCaseService {
@@ -25,7 +26,7 @@ export class TestCaseService {
         this._database = container.resolve(DatabaseManager);
     }
 
-    async getPaged(page: number, pageSize: number, sortOrder: string = ProvaConstants.SORT_ORDER_DESC, search: string, testSuiteId: number = null): Promise<[TestCase[], number]> {
+    async getPaged(page: number, pageSize: number, sortOrder: string = ProvaConstants.SORT_ORDER_DESC, search: string, testSuiteId: number = null, isAssigned: number = null): Promise<[TestCase[], number]> {
         try {
             const conn = await this._database.getConnection();
             const skip = (page - 1) * pageSize;
@@ -33,16 +34,28 @@ export class TestCaseService {
             const qb = testCaseRepo.createQueryBuilder("t")
                 .innerJoinAndSelect('t.testState', 'ts')
                 .innerJoinAndSelect('t.testSuite', 'tst')
+                .leftJoin("projects", "pj", "pj.id = tst.project_id")
+                .leftJoin("users_projects", "up", "up.project_id = pj.id")
                 .leftJoinAndSelect('t.priority', 'p')
                 .leftJoinAndSelect('t.severity', 's')
                 .leftJoinAndSelect('t.userInCharge', 'u')
                 .where(`t.deleted_at is null`);
+
+            const userClaims = container.resolve(UserClaims);
+            if (userClaims.payload.uid) {
+                qb.andWhere(`up.user_id = ${userClaims.payload.uid}`);
+            }
+
             if (search) {
                 qb.andWhere(`concat(t.title,t.description) like '%${search}%'`);
             }
 
             if (testSuiteId) {
                 qb.andWhere(`t.test_suite_id = ${testSuiteId}`);
+            }
+
+            if (isAssigned === 0 || isAssigned === 1) {
+                // TO DO, FILTRAR LOS CASOS DE PRUEBA QUE NO HAN SIDO ASIGNADOS A UN CRITERIO DE ACEPTACION
             }
 
             qb.orderBy({

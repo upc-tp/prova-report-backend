@@ -53,6 +53,12 @@ export class Defect extends AuditEntity {
 
     @Column({
         type: 'varchar',
+        length: 16
+    })
+    tag: string;
+
+    @Column({
+        type: 'varchar',
         length: 64
     })
     title: string;
