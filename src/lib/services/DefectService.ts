@@ -49,7 +49,7 @@ export class DefectService {
                 qb.andWhere(`ds.id = ${defectStateId}`);
             }
 
-            if (is_fixed !== null) {
+            if (is_fixed === 0 || is_fixed === 1) {
                 qb.andWhere(`d.is_fixed = ${is_fixed}`);
             }
 
