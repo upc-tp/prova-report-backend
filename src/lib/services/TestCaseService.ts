@@ -26,7 +26,7 @@ export class TestCaseService {
         this._database = container.resolve(DatabaseManager);
     }
 
-    async getPaged(page: number, pageSize: number, sortOrder: string = ProvaConstants.SORT_ORDER_DESC, search: string, testSuiteId: number = null, isAssigned: number = null): Promise<[TestCase[], number]> {
+    async getPaged(page: number, pageSize: number, sortOrder: string = ProvaConstants.SORT_ORDER_DESC, search: string, testSuiteId: number = null, projectId: number = null, isAssigned: number = null): Promise<[TestCase[], number]> {
         try {
             const conn = await this._database.getConnection();
             const skip = (page - 1) * pageSize;
@@ -39,6 +39,7 @@ export class TestCaseService {
                 .leftJoinAndSelect('t.priority', 'p')
                 .leftJoinAndSelect('t.severity', 's')
                 .leftJoinAndSelect('t.userInCharge', 'u')
+                .leftJoinAndSelect('t.userStoryCriteria', 'uc')
                 .where(`t.deleted_at is null`);
 
             const userClaims = container.resolve(UserClaims);
@@ -50,12 +51,18 @@ export class TestCaseService {
                 qb.andWhere(`concat(t.title,t.description) like '%${search}%'`);
             }
 
+            if (projectId) {
+                qb.andWhere(`pj.id = ${projectId}`);
+            }
+
             if (testSuiteId) {
                 qb.andWhere(`t.test_suite_id = ${testSuiteId}`);
             }
 
-            if (isAssigned === 0 || isAssigned === 1) {
-                // TO DO, FILTRAR LOS CASOS DE PRUEBA QUE NO HAN SIDO ASIGNADOS A UN CRITERIO DE ACEPTACION
+            if (isAssigned === 1) {
+                qb.andWhere(`uc.test_case_id is not null`);
+            } else if (isAssigned === 0) {
+                qb.andWhere(`uc.test_case_id is null`);
             }
 
             qb.orderBy({

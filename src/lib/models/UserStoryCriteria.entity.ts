@@ -1,6 +1,7 @@
-import { Column, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity, JoinColumn, ManyToOne, OneToMany, OneToOne, PrimaryGeneratedColumn } from "typeorm";
 import { AuditEntity} from "./AuditEntity.entity";
 import { Project } from "./Project.entity";
+import { TestCase } from "./TestCase.entity";
 import { UserStory } from "./UserStory.entity";
 
 @Entity({
@@ -18,6 +19,13 @@ export class UserStoryCriteria extends AuditEntity {
         referencedColumnName: 'id'
     })
     userStory: UserStory;
+
+    @OneToOne(() => TestCase, testCase => testCase.userStoryCriteria)
+    @JoinColumn({
+        name: 'test_case_id',
+        referencedColumnName: 'id'
+    })
+    testCase: TestCase;
 
     @Column({
         type: 'varchar',

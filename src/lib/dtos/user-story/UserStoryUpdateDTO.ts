@@ -1,6 +1,6 @@
-import { IsArray, IsOptional, IsString } from "class-validator";
+import { IsArray, IsString } from "class-validator";
 import { ProvaConstants } from "../../common/constants";
-import { UserStoryCriteria } from "../../models/UserStoryCriteria.entity";
+import { UserStoryCriteriaDTO } from "./UserStoryCriteriaDTO";
 
 export class UserStoryUpdateDTO {
 
@@ -17,5 +17,5 @@ export class UserStoryUpdateDTO {
     @IsArray({
         message: ProvaConstants.VALIDATION_MESSAGE_IS_ARRAY 
     })
-    userStoryCriterias: UserStoryCriteria[]; 
+    userStoryCriterias: UserStoryCriteriaDTO[]; 
 }

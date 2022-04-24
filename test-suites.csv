@@ -1,0 +1,7 @@
+﻿Type,Title,Description,Priority,Severity
+ST,"Modulo, de Catalogo",Conjunto de pruebas enfocadas a validar el modulo de catalogo,,
+TC,Listar productos,Listar productos satisfactoriamente,1,1
+TC,Buscar productos,Busca productos satisfactoriamente,2,2
+ST,Modulo de Ventas,"Conjunto, de pruebas enfocadas a validar el modulo de ventas",,
+TC,Registrar factura,Registra factura de venta satisfactoriamente,3,3
+TC,Registrar cliente,Registra cliente satisfactoriamente,1,1
