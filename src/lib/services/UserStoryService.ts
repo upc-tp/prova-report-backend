@@ -115,17 +115,38 @@ export class UserStoryService {
             const conn = await this._database.getConnection();
             return await conn.transaction(async transactionalEntityManager => {
                 const userStoryRepo = transactionalEntityManager.getCustomRepository(UserStoryRepository);
-                const entity = await userStoryRepo.findOne(id);
+                const userStoryCriteriaRepo = transactionalEntityManager.getRepository(UserStoryCriteria);
+                const entity = await userStoryRepo.findOne({ id }, {
+                    relations: [
+                        "userStoryCriterias"
+                    ]
+                });
                 if (!entity) {
                     const notFoundError = new BusinessError(StringUtils.format(ProvaConstants.MESSAGE_RESPONSE_NOT_FOUND, 'User Stories', id.toString()), 404);
                     return Promise.reject(notFoundError);
                 }
                 console.log("Updating user story:");
+                console.log(entity);
                 entity.name = dto.name;
                 entity.description = dto.description;
+                const removedDetails = entity.userStoryCriterias.filter(det => !dto.userStoryCriterias.some(d => d.id === det.id));
+                await userStoryCriteriaRepo.remove(removedDetails);
+                entity.userStoryCriterias = dto.userStoryCriterias.map(
+                    (cri) => {
+
+                        let item = entity.userStoryCriterias.find(x => x.id === cri.id);
+                        if (item){
+                            item.description = cri.description;
+                        }else{
+                           item = new UserStoryCriteria();
+                           item.description = cri.description; 
+                        }
+                        return item;
+                    }
+                )
                 console.log(entity);
                 const userStory = await userStoryRepo.save(entity);
-                console.log("Test Suite updated successfully");
+                console.log("User Story updated successfully");
                 return userStory;
             }).catch(error => {
                 return Promise.reject(error);
