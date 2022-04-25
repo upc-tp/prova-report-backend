@@ -1,27 +1,22 @@
 import { IsArray, IsInt, IsOptional, IsString } from "class-validator";
+import internal from "stream";
 import { ProvaConstants } from "../../common/constants";
-import { UserStoryCriteriaDTO } from "./UserStoryCriteriaDTO";
 
-export class UserStorySaveDTO {
+export class DefectBulkUpdateDTO {
 
     @IsInt({
         message: ProvaConstants.VALIDATION_MESSAGE_IS_INT
     })
-    projectId: number;
+    defectStateId: number;
 
-    @IsString({
+    @IsInt({
         message: ProvaConstants.VALIDATION_MESSAGE_IS_STRING
     })
-    name: string;
-
-    @IsString({
-        message: ProvaConstants.VALIDATION_MESSAGE_IS_STRING
-    })
-    description: string;
+    @IsOptional()
+    is_fixed: number;
 
     @IsArray({
         message: ProvaConstants.VALIDATION_MESSAGE_IS_ARRAY 
     })
-    userStoryCriterias: UserStoryCriteriaDTO[]; 
-
+    defectIds: number[];
 }

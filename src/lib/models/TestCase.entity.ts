@@ -1,4 +1,4 @@
-import { Column, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity, JoinColumn, ManyToOne, OneToMany, OneToOne, PrimaryGeneratedColumn } from "typeorm";
 import { AuditEntity } from "./AuditEntity.entity";
 import { Priority } from "./Priority.entity";
 import { Severity } from "./Severity.entity";
@@ -6,6 +6,7 @@ import { TestExecution } from "./TestExecution.entity";
 import { TestState } from "./TestState.entity";
 import { TestSuite } from "./TestSuite.entity";
 import {User} from "./User.entity";
+import { UserStoryCriteria } from "./UserStoryCriteria.entity";
 
 @Entity({
     name: 'test_cases'
@@ -53,6 +54,15 @@ export class TestCase extends AuditEntity {
         referencedColumnName: 'id'
     })
     userInCharge: User;
+
+    @OneToOne(() => UserStoryCriteria, criteria => criteria.testCase)
+    userStoryCriteria: UserStoryCriteria;
+
+    @Column({
+        type: 'varchar',
+        length: 16
+    })
+    tag: string;
 
     @Column({
         type: 'varchar',

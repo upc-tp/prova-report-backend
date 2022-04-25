@@ -1,8 +1,7 @@
-import { IsArray, IsInt, IsOptional, IsString } from "class-validator";
+import { IsInt, IsString } from "class-validator";
 import { ProvaConstants } from "../../common/constants";
-import { UserStoryCriteriaDTO } from "./UserStoryCriteriaDTO";
 
-export class UserStorySaveDTO {
+export class TestPlanSaveDTO {
 
     @IsInt({
         message: ProvaConstants.VALIDATION_MESSAGE_IS_INT
@@ -12,16 +11,10 @@ export class UserStorySaveDTO {
     @IsString({
         message: ProvaConstants.VALIDATION_MESSAGE_IS_STRING
     })
-    name: string;
+    title: string;
 
     @IsString({
         message: ProvaConstants.VALIDATION_MESSAGE_IS_STRING
     })
     description: string;
-
-    @IsArray({
-        message: ProvaConstants.VALIDATION_MESSAGE_IS_ARRAY 
-    })
-    userStoryCriterias: UserStoryCriteriaDTO[]; 
-
 }

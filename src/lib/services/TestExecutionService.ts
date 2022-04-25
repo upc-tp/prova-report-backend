@@ -61,6 +61,7 @@ export class TestExecutionService {
                 relations: [
                     "testState",
                     "testExecutionSteps",
+                    "testExecutionSteps.testState",
                     "testCase"
                 ],
                 withDeleted: true
@@ -87,6 +88,7 @@ export class TestExecutionService {
                 relations: [
                     "testState",
                     "testExecutionSteps",
+                    "testExecutionSteps.testState",
                     "testCase"
                 ],
                 withDeleted: true
@@ -121,7 +123,8 @@ export class TestExecutionService {
                     const expression = /TC-([0-9]+)/;
                     const result = expression.exec(tag.attrib.name);
                     const id = parseInt(result[1])
-                    return id === testCaseId;
+                    const matchId = parseInt(testCase.tag.split('-')[1]);
+                    return id === matchId;
                 });
 
                 const statusElement = testElement.find('status');

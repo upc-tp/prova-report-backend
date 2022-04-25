@@ -26,8 +26,10 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
         let page = +req.query.page;
         let pageSize = +req.query.pageSize;
         let testSuiteId = +req.query.testSuiteId;
+        let projectId = +req.query.projectId;
+        let isAssigned = +req.query.isAssigned;
         const { sortOrder, search } = req.query;
-        const [result, count] = await _testCaseService.getPaged(page, pageSize, sortOrder as string, search as string, testSuiteId);
+        const [result, count] = await _testCaseService.getPaged(page, pageSize, sortOrder as string, search as string, testSuiteId, projectId, isAssigned);
         if (!page || !pageSize) {
             page = 1;
             pageSize = count;

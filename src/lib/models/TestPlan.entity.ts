@@ -1,12 +1,11 @@
 import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
 import { AuditEntity } from "./AuditEntity.entity";
 import { Project } from "./Project.entity";
-import { TestState } from "./TestState.entity";
 
 @Entity({
-    name: 'test_suites'
+    name: 'test_plans'
 })
-export class TestSuite extends AuditEntity {
+export class TestPlan extends AuditEntity {
     @PrimaryGeneratedColumn({
         type: 'int'
     })
@@ -18,19 +17,6 @@ export class TestSuite extends AuditEntity {
         referencedColumnName: 'id'
     })
     project: Project;
-
-    @ManyToOne(type => TestState)
-    @JoinColumn({
-        name: 'test_state_id',
-        referencedColumnName: 'id'
-    })
-    testState: TestState;
-
-    @Column({
-        type: 'varchar',
-        length: 16
-    })
-    tag: string;
 
     @Column({
         type: 'varchar',

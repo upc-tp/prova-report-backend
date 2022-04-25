@@ -21,6 +21,12 @@ export class UserStory extends AuditEntity {
 
     @Column({
         type: 'varchar',
+        length: 16
+    })
+    tag: string;
+
+    @Column({
+        type: 'varchar',
         length: 128
     })
     name: string;

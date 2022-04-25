@@ -7,6 +7,7 @@ import { BusinessError } from '../lib/common/business-error';
 import { ProvaConstants } from '../lib/common/constants';
 import { ResultResponse, SingleResponse } from '../lib/common/responses';
 import { StringUtils } from '../lib/common/StringUtils';
+import { DefectBulkUpdateDTO } from '../lib/dtos/defect/DefectBulkUpdateDTO';
 import { DefectSaveDTO } from '../lib/dtos/defect/DefectSaveDTO';
 import { DefectUpdateDTO } from '../lib/dtos/defect/DefectUpdateDTO';
 import { authorize } from '../lib/middlewares/authorize';
@@ -20,9 +21,11 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
     try {
         let page = +req.query.page;
         let pageSize = +req.query.pageSize;
-        let testExecutionId = +req.query.testExecutionId;
         const { sortOrder, search } = req.query;
-        const [result, count] = await _defectService.getPage(page, pageSize, sortOrder as string, search as string, testExecutionId);
+        let projectId = +req.query.projectId;
+        let defectStateId = +req.query.defectStateId;
+        let is_fixed = +req.query.is_fixed;
+        const [result, count] = await _defectService.getPage(page, pageSize, sortOrder as string, search as string, projectId, defectStateId, is_fixed);
         if(!page || !pageSize) {
             page = 1;
             pageSize = count;
@@ -61,6 +64,22 @@ router.post('/', authorize(['Admin']), async (req: Request, res: Response, next:
         const message = StringUtils.format(ProvaConstants.MESSAGE_RESPONSE_POST_SUCCESS, 'Defecto');
         const response = SingleResponse(message, true, result);
         res.status(201).send(response);
+    } catch (error) {
+        return next(error);
+    }
+});
+
+router.post('/bulk', authorize(['Admin']), async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const dto: DefectBulkUpdateDTO = plainToClass(DefectBulkUpdateDTO, req.body);
+        const errors = await validate(dto);
+        if (errors.length > 0) {
+            return next(errors);
+        }
+        const result = await _defectService.bulkUpdate(dto);
+        const message = StringUtils.format(ProvaConstants.MESSAGE_RESPONSE_PUT_SUCCESS, 'Defectos');
+        const response = SingleResponse(message, true, result);
+        res.status(200).send(response);
     } catch (error) {
         return next(error);
     }
