@@ -1,6 +1,7 @@
-import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 import { AuditEntity } from "./AuditEntity.entity";
 import { Project } from "./Project.entity";
+import { TestCase } from "./TestCase.entity";
 import { TestState } from "./TestState.entity";
 
 @Entity({
@@ -11,20 +12,6 @@ export class TestSuite extends AuditEntity {
         type: 'int'
     })
     id: number;
-
-    @ManyToOne(type => Project)
-    @JoinColumn({
-        name: 'project_id',
-        referencedColumnName: 'id'
-    })
-    project: Project;
-
-    @ManyToOne(type => TestState)
-    @JoinColumn({
-        name: 'test_state_id',
-        referencedColumnName: 'id'
-    })
-    testState: TestState;
 
     @Column({
         type: 'varchar',
@@ -43,4 +30,21 @@ export class TestSuite extends AuditEntity {
         length: 128
     })
     description: string;
+
+    @ManyToOne(type => Project)
+    @JoinColumn({
+        name: 'project_id',
+        referencedColumnName: 'id'
+    })
+    project: Project;
+
+    @ManyToOne(type => TestState)
+    @JoinColumn({
+        name: 'test_state_id',
+        referencedColumnName: 'id'
+    })
+    testState: TestState;
+
+    @OneToMany(() => TestCase, tc => tc.testSuite)
+    testCases: TestCase[];
 }
