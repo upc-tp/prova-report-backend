@@ -1,6 +1,5 @@
-import { Column, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
 import { AuditEntity} from "./AuditEntity.entity";
-import { Project } from "./Project.entity";
 import { UserStory } from "./UserStory.entity";
 
 @Entity({
