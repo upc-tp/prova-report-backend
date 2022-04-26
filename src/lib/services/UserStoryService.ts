@@ -16,6 +16,7 @@ import { UserStoryCriteriaUpdateDTO } from "../dtos/user-story/UserStoryCriteria
 import { TestCaseRepository } from "../repositories/TestCaseRepository";
 import { UserClaims } from "../interfaces/UserClaims";
 import { In } from "typeorm";
+import { TestPlanRepository } from "../repositories/TestPlanRepository";
 
 @singleton()
 export class UserStoryService {
@@ -32,6 +33,7 @@ export class UserStoryService {
             const userStoryRepo = conn.getCustomRepository(UserStoryRepository);
             const qb = userStoryRepo.createQueryBuilder("us")
                 .innerJoinAndSelect('us.project', 'p')
+                .leftJoinAndSelect('us.testPlan', 'tp')
                 .leftJoin("users_projects", "up", "up.project_id = p.id")
                 .where(`us.deleted_at is null`);
 
@@ -66,6 +68,8 @@ export class UserStoryService {
                     deletedAt: null,
                 },
                 relations: [
+                    "project",
+                    "testPlan",
                     "userStoryCriterias",
                     "userStoryCriterias.testCase"
                 ],
@@ -87,13 +91,23 @@ export class UserStoryService {
                 const userStoryRepo = transactionalEntityManager.getCustomRepository(UserStoryRepository);
                 const projectRepo = transactionalEntityManager.getCustomRepository(ProjectRepository);
                 const testCaseRepo = transactionalEntityManager.getCustomRepository(TestCaseRepository);
+                const testPlanRepo = transactionalEntityManager.getCustomRepository(TestPlanRepository);
                 const project = await projectRepo.findOne(dto.projectId);
                 if (!project) {
                     const notFoundError = new BusinessError(StringUtils.format(ProvaConstants.MESSAGE_RESPONSE_NOT_FOUND, 'User Stories', dto.projectId.toString()), 404);
                     return Promise.reject(notFoundError);
                 }
                 entity.project = project;
-
+                if (dto.testPlanId > 0) {
+                    const testPlan = await testPlanRepo.findOne(dto.testPlanId);
+                    if (!testPlan) {
+                        const notFoundError = new BusinessError(StringUtils.format(ProvaConstants.MESSAGE_RESPONSE_NOT_FOUND, 'Test Plan', dto.testPlanId.toString()), 404);
+                        return Promise.reject(notFoundError);
+                    }
+                    entity.testPlan = testPlan;
+                } else {
+                    entity.testPlan = null;
+                }
                 const entityCriterias = await Promise.all(dto.userStoryCriterias.map(
                     async (uc) => {
                         let criteria = new UserStoryCriteria();
@@ -239,6 +253,7 @@ export class UserStoryService {
                 const userStoryRepo = transactionalEntityManager.getCustomRepository(UserStoryRepository);
                 const userStoryCriteriaRepo = transactionalEntityManager.getRepository(UserStoryCriteria);
                 const testCaseRepo = transactionalEntityManager.getCustomRepository(TestCaseRepository);
+                const testPlanRepo = transactionalEntityManager.getCustomRepository(TestPlanRepository);
                 const entity = await userStoryRepo.findOne({ id }, {
                     relations: [
                         "userStoryCriterias",
@@ -253,6 +268,18 @@ export class UserStoryService {
                 console.log(entity);
                 entity.name = dto.name;
                 entity.description = dto.description;
+
+                if (dto.testPlanId > 0) {
+                    const testPlan = await testPlanRepo.findOne(dto.testPlanId);
+                    if (!testPlan) {
+                        const notFoundError = new BusinessError(StringUtils.format(ProvaConstants.MESSAGE_RESPONSE_NOT_FOUND, 'Test Plan', dto.testPlanId.toString()), 404);
+                        return Promise.reject(notFoundError);
+                    }
+                    entity.testPlan = testPlan;
+                } else {
+                    entity.testPlan = null;
+                }
+
                 const removedDetails = entity.userStoryCriterias.filter(det => !dto.userStoryCriterias.some(d => d.id === det.id));
                 await userStoryCriteriaRepo.remove(removedDetails);
                 entity.userStoryCriterias = await Promise.all(dto.userStoryCriterias.map(

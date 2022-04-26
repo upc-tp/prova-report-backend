@@ -9,6 +9,12 @@ export class UserStorySaveDTO {
     })
     projectId: number;
 
+    @IsInt({
+        message: ProvaConstants.VALIDATION_MESSAGE_IS_INT
+    })
+    @IsOptional()
+    testPlanId: number;
+
     @IsString({
         message: ProvaConstants.VALIDATION_MESSAGE_IS_STRING
     })
