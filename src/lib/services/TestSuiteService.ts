@@ -134,6 +134,7 @@ export class TestSuiteService {
 
                 //Leer datos de CSV
                 const lines = csv.split(/\r\n|\n/);
+                console.log("Leyendo CSV: ");
                 console.log(lines);
                 let data = [];
                 for (let i = 1; i < lines.length; i++) {
