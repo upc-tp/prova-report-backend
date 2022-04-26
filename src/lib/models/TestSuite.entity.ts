@@ -2,6 +2,7 @@ import { Column, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColum
 import { AuditEntity } from "./AuditEntity.entity";
 import { Project } from "./Project.entity";
 import { TestCase } from "./TestCase.entity";
+import { TestPlan } from "./TestPlan.entity";
 import { TestState } from "./TestState.entity";
 
 @Entity({
@@ -37,6 +38,13 @@ export class TestSuite extends AuditEntity {
         referencedColumnName: 'id'
     })
     project: Project;
+
+    @ManyToOne(type => TestPlan)
+    @JoinColumn({
+        name: 'test_plan_id',
+        referencedColumnName: 'id'
+    })
+    testPlan: TestPlan;
 
     @ManyToOne(type => TestState)
     @JoinColumn({

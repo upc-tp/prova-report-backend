@@ -14,6 +14,7 @@ import { PriorityRepository } from "../repositories/PriorityRepository";
 import { ProjectRepository } from "../repositories/ProjectRepository";
 import { SeverityRepository } from "../repositories/SeverityRepository";
 import { TestCaseRepository } from "../repositories/TestCaseRepository";
+import { TestPlanRepository } from "../repositories/TestPlanRepository";
 import { TestStateRepository } from "../repositories/TestStateRepository";
 import { TestSuiteRepository } from "../repositories/TestSuiteRepository";
 
@@ -32,6 +33,7 @@ export class TestSuiteService {
             const testSuiteRepo = conn.getCustomRepository(TestSuiteRepository);
             const qb = testSuiteRepo.createQueryBuilder("t")
                 .innerJoinAndSelect('t.testState', 'ts')
+                .leftJoinAndSelect('t.testPlan', 'tp')
                 .innerJoinAndSelect('t.project', 'p')
                 .leftJoin("users_projects", "up", "up.project_id = p.id")
                 .where(`t.deleted_at is null`);
@@ -72,6 +74,7 @@ export class TestSuiteService {
                 relations: [
                     "project",
                     "testState",
+                    "testPlan"
                 ],
                 withDeleted: true
             });
@@ -88,6 +91,7 @@ export class TestSuiteService {
             const entity = plainToClass(TestSuite, dto);
             return await conn.transaction(async transactionalEntityManager => {
                 const projectRepo = transactionalEntityManager.getCustomRepository(ProjectRepository);
+                const testPlanRepo = transactionalEntityManager.getCustomRepository(TestPlanRepository);
                 const testSuiteRepo = transactionalEntityManager.getCustomRepository(TestSuiteRepository);
                 const testStateRepo = transactionalEntityManager.getCustomRepository(TestStateRepository);
                 const project = await projectRepo.findOne(dto.projectId);
@@ -96,6 +100,16 @@ export class TestSuiteService {
                     return Promise.reject(notFoundError);
                 }
                 entity.project = project;
+                if (dto.testPlanId > 0) {
+                    const testPlan = await testPlanRepo.findOne(dto.testPlanId);
+                    if (!testPlan) {
+                        const notFoundError = new BusinessError(StringUtils.format(ProvaConstants.MESSAGE_RESPONSE_NOT_FOUND, 'Test Plan', dto.testPlanId.toString()), 404);
+                        return Promise.reject(notFoundError);
+                    }
+                    entity.testPlan = testPlan;
+                } else {
+                    entity.testPlan = null;
+                }
                 const stateId = ProvaConstants.TEST_STATE_NOT_EXECUTED;
                 const state = await testStateRepo.findOne(stateId);
                 if (!state) {
@@ -238,10 +252,28 @@ export class TestSuiteService {
             const conn = await this._database.getConnection();
             return await conn.transaction(async transactionalEntityManager => {
                 const testSuiteRepo = transactionalEntityManager.getCustomRepository(TestSuiteRepository);
+                const projectRepo = transactionalEntityManager.getCustomRepository(ProjectRepository);
+                const testPlanRepo = transactionalEntityManager.getCustomRepository(TestPlanRepository);
                 const entity = await testSuiteRepo.findOne(id);
                 if (!entity) {
                     const notFoundError = new BusinessError(StringUtils.format(ProvaConstants.MESSAGE_RESPONSE_NOT_FOUND, 'Test Suites', id.toString()), 404);
                     return Promise.reject(notFoundError);
+                }
+                const project = await projectRepo.findOne(dto.projectId);
+                if (!project) {
+                    const notFoundError = new BusinessError(StringUtils.format(ProvaConstants.MESSAGE_RESPONSE_NOT_FOUND, 'Projects', dto.projectId.toString()), 404);
+                    return Promise.reject(notFoundError);
+                }
+                entity.project = project;
+                if (dto.testPlanId > 0) {
+                    const testPlan = await testPlanRepo.findOne(dto.testPlanId);
+                    if (!testPlan) {
+                        const notFoundError = new BusinessError(StringUtils.format(ProvaConstants.MESSAGE_RESPONSE_NOT_FOUND, 'Test Plan', dto.testPlanId.toString()), 404);
+                        return Promise.reject(notFoundError);
+                    }
+                    entity.testPlan = testPlan;
+                } else {
+                    entity.testPlan = null;
                 }
                 console.log("Updating test suite:");
                 entity.title = dto.title;
