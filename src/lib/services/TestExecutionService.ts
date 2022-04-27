@@ -124,6 +124,9 @@ export class TestExecutionService {
                     const result = expression.exec(tag.attrib.name);
                     const id = parseInt(result[1])
                     const matchId = parseInt(testCase.tag.split('-')[1]);
+                    if (id !== matchId) {
+                        throw new BusinessError(`No se ha encontrado el resultado para el caso de prueba: ${testCase.tag}\nPor favor coloque la etiqueta en el archivo .xml`, 400);
+                    }
                     return id === matchId;
                 });
 
