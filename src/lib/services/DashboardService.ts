@@ -1,6 +1,8 @@
 import { container, singleton } from "tsyringe";
 import { DatabaseManager } from "../database/DatabaseManager";
 import mysql = require('mysql');
+import { ProvaConstants } from "../common/constants";
+import { DateUtils } from "../common/DateUtils";
 
 @singleton()
 export class DashboardService {
@@ -10,7 +12,7 @@ export class DashboardService {
         this._database = container.resolve(DatabaseManager);
     }
 
-    async getData(projectId: number, testPlanId: number = 0): Promise<any> {
+    async getData(projectId: number, testPlanId: number = 0, startDate: string = null, endDate: string = null): Promise<any> {
         try {
             const conn = await this._database.getConnection();
             const testsByStatus = await conn.query(`SELECT ts.id,
@@ -41,6 +43,19 @@ export class DashboardService {
             ${testPlanId > 0 ? 'and tst.test_plan_id=' + testPlanId: ''}
             ) as num_tests
             FROM severities s;`);
+
+            const defectsBySeverity = await conn.query(`SELECT s.id, s.name,
+            (SELECT COUNT(*)
+            FROM defects as d
+            INNER JOIN test_cases as tc
+            ON tc.id = d.test_case_id
+            INNER JOIN test_suites tst
+            ON tst.id = tc.test_suite_id
+            WHERE tst.project_id = ${mysql.escape(projectId)}
+            and d.severity_id = s.id
+            ${testPlanId > 0 ? 'and tst.test_plan_id=' + mysql.escape(testPlanId): ''}
+            ) as num_defects
+            from severities s;`);
 
             const testsBySeverity = await Promise.all(severities.map(async (s) => {
                 s['statuses'] = await conn.query(`SELECT t.id, t.name,
@@ -174,6 +189,41 @@ export class DashboardService {
 
             const testDesignCoverage = await conn.query(testDesignCoverageQuery);
 
+            const acceptedDefectId = ProvaConstants.DEFECT_STATE_ACCEPTED;
+            const defectsFixedQuery = `SELECT 
+            IFNULL(SUM(IF(d.is_fixed = 1, 1, 0)), 0) as fixed_defects, 
+            COUNT(d.id) as accepted_tests 
+            FROM defects d
+            INNER JOIN test_cases tc
+            ON tc.id = d.test_case_id
+            INNER JOIN test_suites tst
+            ON tst.id = tc.test_suite_id
+            WHERE tst.project_id = ${mysql.escape(projectId)}
+            ${testPlanId > 0 ? 'AND tst.test_plan_id=' + mysql.escape(testPlanId): ''}
+            and d.defect_state_id = ${mysql.escape(acceptedDefectId)};`;
+
+            const defectsFixed = await conn.query(defectsFixedQuery);
+
+            const testExecutionTrendQuery = `SELECT DATE(te.created_at) as day,
+            COUNT(te.id) as tests_executed_by_day,
+            AVG(te.duration) as average_duration
+            FROM test_executions te
+            INNER JOIN test_cases tc
+            ON tc.id = te.test_case_id and tc.last_execution = te.order 
+            INNER JOIN test_suites tst
+            ON tst.id = tc.test_suite_id
+            WHERE tst.project_id = ${mysql.escape(projectId)}
+            ${testPlanId > 0 ? 'AND tst.test_plan_id=' + mysql.escape(testPlanId): ''}
+            ${startDate && endDate ? `AND (DATE(te.created_at) BETWEEN ${mysql.escape(startDate)} AND ${mysql.escape(endDate)})`: ''}
+            GROUP BY DATE(te.created_at);`;
+
+            let testExecutionTrend = await conn.query(testExecutionTrendQuery);
+
+            testExecutionTrend = testExecutionTrend.map(tet => {
+                tet.day = DateUtils.getDateFromISOString(tet.day);
+                return tet;
+            });
+
             return {
                 testsByStatus,
                 defectsByStatus,
@@ -181,7 +231,10 @@ export class DashboardService {
                 testsByPriority,
                 requirementCoverage,
                 testCoverage: testCoverage[0],
-                testDesignCoverage: testDesignCoverage[0]
+                testDesignCoverage: testDesignCoverage[0],
+                defectsBySeverity,
+                defectsFixed: defectsFixed[0],
+                testExecutionTrend
             };
         } catch (error) {
             console.log(error);

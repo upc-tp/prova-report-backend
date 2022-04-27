@@ -30,4 +30,12 @@ export class DateUtils {
         const milliseconds = Math.floor(diff);
         return milliseconds;
     }
+    /**
+     * Receives one date and returns the date part yyyy-MM-dd
+     * @param  {Date} isoDateString First date
+     * @return {Number}      Returns the date part of an ISO Date
+     */
+    static getDateFromISOString(isoDateString: Date) {
+        return isoDateString.toISOString().split('T')[0];
+    }
 }
