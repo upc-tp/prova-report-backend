@@ -27,6 +27,7 @@ export class DashboardService {
             WHERE te.test_state_id = ts.id
             and tst.project_id = ${mysql.escape(projectId)}
             ${testPlanId > 0 ? 'and tst.test_plan_id=' + testPlanId: ''}
+            ${startDate && endDate ? `AND (DATE(te.created_at) BETWEEN ${mysql.escape(startDate)} AND ${mysql.escape(endDate)})`: ''}
             ) as num_tests
             FROM test_states as ts;`);
 
@@ -41,6 +42,7 @@ export class DashboardService {
             WHERE tc.severity_id = s.id
             and tst.project_id = ${mysql.escape(projectId)}
             ${testPlanId > 0 ? 'and tst.test_plan_id=' + testPlanId: ''}
+            ${startDate && endDate ? `AND (DATE(te.created_at) BETWEEN ${mysql.escape(startDate)} AND ${mysql.escape(endDate)})`: ''}
             ) as num_tests
             FROM severities s;`);
 
@@ -53,6 +55,7 @@ export class DashboardService {
             ON tst.id = tc.test_suite_id
             WHERE tst.project_id = ${mysql.escape(projectId)}
             and d.severity_id = s.id
+            ${startDate && endDate ? `AND (DATE(d.created_at) BETWEEN ${mysql.escape(startDate)} AND ${mysql.escape(endDate)})`: ''}
             ${testPlanId > 0 ? 'and tst.test_plan_id=' + mysql.escape(testPlanId): ''}
             ) as num_defects
             from severities s;`);
@@ -70,6 +73,7 @@ export class DashboardService {
                 and tc.severity_id = ${mysql.escape(s.id)}
                 and te.test_state_id = t.id
                 ${testPlanId > 0 ? 'and tst.test_plan_id=' + testPlanId: ''}
+                ${startDate && endDate ? `AND (DATE(te.created_at) BETWEEN ${mysql.escape(startDate)} AND ${mysql.escape(endDate)})`: ''}
                 ) as num_tests
                 from test_states t;`);
                 return s;
@@ -86,6 +90,7 @@ export class DashboardService {
             WHERE tc.priority_id = p.id
             and tst.project_id = ${mysql.escape(projectId)}
             ${testPlanId > 0 ? 'and tst.test_plan_id=' + testPlanId: ''}
+            ${startDate && endDate ? `AND (DATE(te.created_at) BETWEEN ${mysql.escape(startDate)} AND ${mysql.escape(endDate)})`: ''}
             ) as num_tests
             FROM priorities as p;`);
 
@@ -102,6 +107,7 @@ export class DashboardService {
                 and tc.priority_id = ${mysql.escape(p.id)}
                 and te.test_state_id = t.id
                 ${testPlanId > 0 ? 'and tst.test_plan_id=' + testPlanId: ''}
+                ${startDate && endDate ? `AND (DATE(te.created_at) BETWEEN ${mysql.escape(startDate)} AND ${mysql.escape(endDate)})`: ''}
                 ) as num_tests
                 from test_states t;`);
                 return p;
@@ -116,6 +122,7 @@ export class DashboardService {
             WHERE tst.project_id = ${mysql.escape(projectId)}
             and d.defect_state_id = ds.id
             ${testPlanId > 0 ? 'and tst.test_plan_id=' + testPlanId: ''}
+            ${startDate && endDate ? `AND (DATE(d.created_at) BETWEEN ${mysql.escape(startDate)} AND ${mysql.escape(endDate)})`: ''}
             ) as num_defects
             FROM defect_states ds;`);
 
@@ -135,6 +142,7 @@ export class DashboardService {
             ON te.test_case_id = tc.id
             WHERE p.id = ${projectId}
             ${testPlanId > 0 ? 'AND us.test_plan_id=' + testPlanId: ''}
+            ${startDate && endDate ? `AND (DATE(te.created_at) BETWEEN ${mysql.escape(startDate)} AND ${mysql.escape(endDate)})`: ''}
             GROUP BY us.id
             ORDER BY us.tag;`;
             let userStoryExecutedTests = await conn.query(queryRequirementCoverage);
@@ -170,7 +178,9 @@ export class DashboardService {
             LEFT JOIN test_plans tp
             ON tp.id = tst.test_plan_id
             WHERE tst.project_id = ${projectId}
-            ${testPlanId > 0 ? 'AND tp.id=' + testPlanId: ''};`;
+            ${testPlanId > 0 ? 'AND tp.id=' + testPlanId: ''}
+            ${startDate && endDate ? `AND (DATE(tc.created_at) BETWEEN ${mysql.escape(startDate)} AND ${mysql.escape(endDate)})`: ''}
+            ;`;
 
             const testCoverage = await conn.query(testCoverageQuery);
 
@@ -185,7 +195,9 @@ export class DashboardService {
             LEFT JOIN test_plans tp
             ON tp.id = tst.test_plan_id
             WHERE tst.project_id = ${projectId}
-            ${testPlanId > 0 ? 'AND tp.id=' + testPlanId: ''};`;
+            ${testPlanId > 0 ? 'AND tp.id=' + testPlanId: ''}
+            ${startDate && endDate ? `AND (DATE(tc.created_at) BETWEEN ${mysql.escape(startDate)} AND ${mysql.escape(endDate)})`: ''}
+            ;`;
 
             const testDesignCoverage = await conn.query(testDesignCoverageQuery);
 
@@ -200,6 +212,7 @@ export class DashboardService {
             ON tst.id = tc.test_suite_id
             WHERE tst.project_id = ${mysql.escape(projectId)}
             ${testPlanId > 0 ? 'AND tst.test_plan_id=' + mysql.escape(testPlanId): ''}
+            ${startDate && endDate ? `AND (DATE(d.created_at) BETWEEN ${mysql.escape(startDate)} AND ${mysql.escape(endDate)})`: ''}
             and d.defect_state_id = ${mysql.escape(acceptedDefectId)};`;
 
             const defectsFixed = await conn.query(defectsFixedQuery);
