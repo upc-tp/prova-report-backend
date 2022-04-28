@@ -66,6 +66,20 @@ router.post('/', authorize(['Admin']), async (req: Request, res: Response, next:
     }
 });
 
+router.post('/import', authorize(['Admin', 'Tester']), async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const projectId = +req.query.projectId;
+        const buffer = req.body;
+        const csv = buffer.toString();
+        const result = await _testSuiteService.importCSV(projectId, csv);
+        const message = StringUtils.format(ProvaConstants.MESSAGE_RESPONSE_POST_SUCCESS, 'Suite de Prueba');
+        const response = SingleResponse(message, true, result);
+        res.status(201).send(response);
+    } catch (error) {
+        return next(error);
+    }
+});
+
 router.put('/:id', authorize(['Admin']), async (req: Request, res: Response, next: NextFunction) => {
     try {
         const id = +req.params.id;

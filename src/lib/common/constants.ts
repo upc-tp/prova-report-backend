@@ -48,6 +48,10 @@ export class ProvaConstants {
     public static readonly TEST_STATE_SKIPPED = 4;
     public static readonly TEST_STATE_BROKEN = 5;
 
+    public static readonly DEFECT_STATE_NEW = 1;
+    public static readonly DEFECT_STATE_ACCEPTED = 2;
+    public static readonly DEFECT_STATE_REJECTED = 3;
+
     public static readonly USER_ROLE_ADMIN = "Admin";
     public static readonly USER_ROLE_TESTER= "Tester";
 

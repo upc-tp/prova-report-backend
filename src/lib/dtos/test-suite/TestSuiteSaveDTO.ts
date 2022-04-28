@@ -1,4 +1,4 @@
-import { IsInt, IsString } from "class-validator";
+import { IsInt, IsOptional, IsString } from "class-validator";
 import { ProvaConstants } from "../../common/constants";
 
 export class TestSuiteSaveDTO {
@@ -7,6 +7,12 @@ export class TestSuiteSaveDTO {
         message: ProvaConstants.VALIDATION_MESSAGE_IS_INT
     })
     projectId: number;
+
+    @IsInt({
+        message: ProvaConstants.VALIDATION_MESSAGE_IS_INT
+    })
+    @IsOptional()
+    testPlanId: number;
 
     @IsString({
         message: ProvaConstants.VALIDATION_MESSAGE_IS_STRING

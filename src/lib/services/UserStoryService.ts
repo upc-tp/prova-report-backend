@@ -15,6 +15,8 @@ import { UserStoryCriteriaRepository } from "../repositories/UserStoryCriteriaRe
 import { UserStoryCriteriaUpdateDTO } from "../dtos/user-story/UserStoryCriteriaUpdateDTO";
 import { TestCaseRepository } from "../repositories/TestCaseRepository";
 import { UserClaims } from "../interfaces/UserClaims";
+import { In } from "typeorm";
+import { TestPlanRepository } from "../repositories/TestPlanRepository";
 
 @singleton()
 export class UserStoryService {
@@ -31,6 +33,7 @@ export class UserStoryService {
             const userStoryRepo = conn.getCustomRepository(UserStoryRepository);
             const qb = userStoryRepo.createQueryBuilder("us")
                 .innerJoinAndSelect('us.project', 'p')
+                .leftJoinAndSelect('us.testPlan', 'tp')
                 .leftJoin("users_projects", "up", "up.project_id = p.id")
                 .where(`us.deleted_at is null`);
 
@@ -65,6 +68,8 @@ export class UserStoryService {
                     deletedAt: null,
                 },
                 relations: [
+                    "project",
+                    "testPlan",
                     "userStoryCriterias",
                     "userStoryCriterias.testCase"
                 ],
@@ -86,13 +91,23 @@ export class UserStoryService {
                 const userStoryRepo = transactionalEntityManager.getCustomRepository(UserStoryRepository);
                 const projectRepo = transactionalEntityManager.getCustomRepository(ProjectRepository);
                 const testCaseRepo = transactionalEntityManager.getCustomRepository(TestCaseRepository);
+                const testPlanRepo = transactionalEntityManager.getCustomRepository(TestPlanRepository);
                 const project = await projectRepo.findOne(dto.projectId);
                 if (!project) {
                     const notFoundError = new BusinessError(StringUtils.format(ProvaConstants.MESSAGE_RESPONSE_NOT_FOUND, 'User Stories', dto.projectId.toString()), 404);
                     return Promise.reject(notFoundError);
                 }
                 entity.project = project;
-
+                if (dto.testPlanId > 0) {
+                    const testPlan = await testPlanRepo.findOne(dto.testPlanId);
+                    if (!testPlan) {
+                        const notFoundError = new BusinessError(StringUtils.format(ProvaConstants.MESSAGE_RESPONSE_NOT_FOUND, 'Test Plan', dto.testPlanId.toString()), 404);
+                        return Promise.reject(notFoundError);
+                    }
+                    entity.testPlan = testPlan;
+                } else {
+                    entity.testPlan = null;
+                }
                 const entityCriterias = await Promise.all(dto.userStoryCriterias.map(
                     async (uc) => {
                         let criteria = new UserStoryCriteria();
@@ -124,6 +139,113 @@ export class UserStoryService {
         }
     }
 
+    async importCSV(projectId: number, csv: string): Promise<any> {
+        try {
+            const conn = await this._database.getConnection();
+            return await conn.transaction(async transactionalEntityManager => {
+                const projectRepo = transactionalEntityManager.getCustomRepository(ProjectRepository);
+                const userStoryRepo = transactionalEntityManager.getCustomRepository(UserStoryRepository);
+                const testCaseRepo = transactionalEntityManager.getCustomRepository(TestCaseRepository);
+                const userCriteriasRepo = transactionalEntityManager.getRepository(UserStoryCriteria);
+
+                if (isNaN(projectId)) {
+                    throw new BusinessError('Debe indicar el ?projectId como query parameter', 400);
+                }
+
+                //Leer datos de CSV
+                const lines = csv.split(/\r\n|\n/);
+                console.log("Leyendo CSV: ");
+                console.log(lines);
+                let data = [];
+
+                for (let i = 1; i < lines.length; i++) {
+                    const line = lines[i];
+                    const entries = StringUtils.csvRowToArray(line, ',', '"');
+                    const type = entries[0];
+                    const name = entries[1].replace('"', ''); // Si tiene el text qualifier "" lo elimina
+                    const description = entries[2].replace('"', '');
+                    if (type === 'US') {
+                        // Guardar suite de prueba
+                        data.push({
+                            type,
+                            name,
+                            description,
+                            criterias: []
+                        });
+                    } else {
+                        // Guardar caso de prueba en el ultimo suite registrado
+                        const lastUserStory = data[data.length - 1];
+                        const testCaseTag = entries[3];
+                        lastUserStory.criterias.push({
+                            type,
+                            description,
+                            testCaseTag
+                        });
+                    }
+                }
+
+                const project = await projectRepo.findOne(projectId);
+                if (!project) {
+                    const notFoundError = new BusinessError(StringUtils.format(ProvaConstants.MESSAGE_RESPONSE_NOT_FOUND, 'Projects', projectId.toString()), 404);
+                    return Promise.reject(notFoundError);
+                }
+
+                let newStoryIds: number[] = [];
+
+                for (const story of data) {
+                    let newStory = new UserStory();
+                    newStory.name = story.name;
+                    newStory.description = story.description;
+                    newStory.project = project;
+                    newStory = await userStoryRepo.save(newStory);
+                    if (story.criterias.length > 0) {
+                        for (const cri of story.criterias) {
+                            const testCase = await testCaseRepo.findOne({
+                                where: {
+                                    tag: cri.testCaseTag,
+                                    testSuite: {
+                                        project: {
+                                            id: project.id
+                                        }
+                                    }
+                                },
+                                relations: [
+                                    "testSuite",
+                                    "testSuite.project"
+                                ]
+                            });
+                            if (!testCase) {
+                                const notFoundError = new BusinessError(StringUtils.format(ProvaConstants.MESSAGE_RESPONSE_NOT_FOUND, 'Caso de prueba', cri.testCaseTag), 404);
+                                return Promise.reject(notFoundError);
+                            }
+                            let newCriteria = new UserStoryCriteria();
+                            newCriteria.description = cri.description;
+                            newCriteria.testCase = testCase;
+                            newCriteria.userStory = newStory;
+                            await userCriteriasRepo.save(newCriteria);
+                        }
+                    }
+                    newStoryIds.push(newStory.id);
+                }
+                const entities = await userStoryRepo.find({
+                    where: {
+                        id: In(newStoryIds)
+                    },
+                    relations: [
+                        "userStoryCriterias",
+                        "userStoryCriterias.testCase"
+                    ]
+                })
+                return entities;
+            }).catch(error => {
+                return Promise.reject(error);
+            });
+        } catch (error) {
+            console.error(error);
+            return Promise.reject(error);
+        }
+    }
+
     async update(id: number, dto: UserStoryUpdateDTO): Promise<UserStory> {
         try {
             const conn = await this._database.getConnection();
@@ -131,6 +253,7 @@ export class UserStoryService {
                 const userStoryRepo = transactionalEntityManager.getCustomRepository(UserStoryRepository);
                 const userStoryCriteriaRepo = transactionalEntityManager.getRepository(UserStoryCriteria);
                 const testCaseRepo = transactionalEntityManager.getCustomRepository(TestCaseRepository);
+                const testPlanRepo = transactionalEntityManager.getCustomRepository(TestPlanRepository);
                 const entity = await userStoryRepo.findOne({ id }, {
                     relations: [
                         "userStoryCriterias",
@@ -145,6 +268,18 @@ export class UserStoryService {
                 console.log(entity);
                 entity.name = dto.name;
                 entity.description = dto.description;
+
+                if (dto.testPlanId > 0) {
+                    const testPlan = await testPlanRepo.findOne(dto.testPlanId);
+                    if (!testPlan) {
+                        const notFoundError = new BusinessError(StringUtils.format(ProvaConstants.MESSAGE_RESPONSE_NOT_FOUND, 'Test Plan', dto.testPlanId.toString()), 404);
+                        return Promise.reject(notFoundError);
+                    }
+                    entity.testPlan = testPlan;
+                } else {
+                    entity.testPlan = null;
+                }
+
                 const removedDetails = entity.userStoryCriterias.filter(det => !dto.userStoryCriterias.some(d => d.id === det.id));
                 await userStoryCriteriaRepo.remove(removedDetails);
                 entity.userStoryCriterias = await Promise.all(dto.userStoryCriterias.map(
