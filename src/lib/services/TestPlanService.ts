@@ -10,6 +10,7 @@ import { TestPlan } from "../models/TestPlan.entity";
 import { TestPlanSaveDTO } from "../dtos/test-plan/TestPlanSaveDTO";
 import { TestPlanUpdateDTO } from "../dtos/test-plan/TestPlanUpdateDTO";
 import { UserClaims } from "../interfaces/UserClaims";
+import { VersionsRepository } from "../repositories/VersionsRepository";
 
 @singleton()
 export class TestPlanService {
@@ -25,6 +26,7 @@ export class TestPlanService {
             const skip = (page - 1) * pageSize;
             const testPlanRepo = conn.getCustomRepository(TestPlanRepository);
             const qb = testPlanRepo.createQueryBuilder("t")
+                .leftJoinAndSelect('t.version','v')
                 .innerJoinAndSelect('t.project', 'p')
                 .leftJoin("users_projects", "up", "up.project_id = p.id")
                 .where(`t.deleted_at is null`);
@@ -64,6 +66,7 @@ export class TestPlanService {
                 },
                 relations: [
                     "project",
+                    "version"
                 ],
                 withDeleted: true
             });
@@ -81,12 +84,23 @@ export class TestPlanService {
             return await conn.transaction(async transactionalEntityManager => {
                 const projectRepo = transactionalEntityManager.getCustomRepository(ProjectRepository);
                 const testPlanRepo = transactionalEntityManager.getCustomRepository(TestPlanRepository);
+                const versionRepo = transactionalEntityManager.getCustomRepository(VersionsRepository);
                 const project = await projectRepo.findOne(dto.projectId);
                 if (!project) {
                     const notFoundError = new BusinessError(StringUtils.format(ProvaConstants.MESSAGE_RESPONSE_NOT_FOUND, 'Projects', dto.projectId.toString()), 404);
                     return Promise.reject(notFoundError);
                 }
                 entity.project = project;
+                if (dto.versionId > 0) {
+                    const version = await versionRepo.findOne(dto.versionId);
+                    if (!version) {
+                        const notFoundError = new BusinessError(StringUtils.format(ProvaConstants.MESSAGE_RESPONSE_NOT_FOUND, 'Version', dto.versionId.toString()), 404);
+                        return Promise.reject(notFoundError);
+                    }
+                    entity.version = version;
+                } else {
+                    entity.version = null;
+                }
                 console.log("Creating test plan:");
                 console.log(entity);
                 const testPlan = testPlanRepo.save(entity);
