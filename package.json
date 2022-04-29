@@ -4,8 +4,10 @@
   "description": "Proyecto para el curso de TP - UPC",
   "main": "dist/index.js",
   "scripts": {
-    "start": "tsc --build tsconfig.json && cp -R templates dist/templates && node dist/index.js",
-    "build": "tsc --build tsconfig.json && cp -R templates dist/templates",
+    "start": "tsc --build tsconfig.json && node dist/index.js",
+    "build": "tsc --build tsconfig.json",
+    "start-unix": "tsc --build tsconfig.json && cp -R templates dist/templates && node dist/index.js",
+    "build-unix": "tsc --build tsconfig.json && cp -R templates dist/templates",
     "build:watch": "tsc --build tsconfig.json --watch",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
