@@ -17,135 +17,91 @@
         <h1>Reporte de plan de pruebas</h1>
         <h3>Fecha de generación: {{reportDate}}</h3>
 
-        <h2>Índice</h2>
-        <ul>
-            <li><a href="#general">Datos de la planificación</a></li>
-            <li><a href="#user-stories">Historias de usuario</a></li>
-            <li><a href="#test-cases">Casos de prueba</a></li>
-            <li><a href="#traceability">Matriz de trazabilidad de requisitos</a></li>
-            <li><a href="#results">Resultados</a></li>
-            <!-- <li><a href="#requirement-coverage">Cobertura de requisitos</a></li>
-            <li><a href="#test-design-coverage">Cobertura de diseño de pruebas</a></li>
-            <li><a href="#test-execution-coverage">Cobertura de ejecución de pruebas</a></li> -->
-        </ul>
-
         <h2 id="general">Datos de la planificación</h2>
 
         <table class="table">
-            <thead>
+            <thead class="table-primary">
                 <th>Proyecto</th>
                 <th>Plan de prueba</th>
                 <th>Versión</th>
             </thead>
             <tbody>
                 <tr>
-                    <td>Portal Web</td>
-                    <td>Sprint 1</td>
-                    <td>1.0</td>
+                    <td>{{ testPlan.project.title }}</td>
+                    <td>{{ testPlan.title }}</td>
+                    <td>{{ testPlan.version.title }}</td>
                 </tr>
             </tbody>
         </table>
         <h2>Historias de usuario</h2>
         <table class="table">
-            <thead>
+            <thead class="table-primary">
                 <th>Etiqueta</th>
                 <th>Nombre</th>
                 <th>Descripción</th>
             </thead>
             <tbody>
+                {{#each userStories}}
                 <tr>
-                    <td>US-01</td>
-                    <td>Registrar productos</td>
-                    <td>COMO usuario<br>
-                        QUIERO registrar productos<br>
-                        PARA mantener actualizado la información del catálogo
-                    </td>
+                    <td>{{tag}}</td>
+                    <td>{{name}}</td>
+                    <td>{{description}}</td>
                 </tr>
-                <tr>
-                    <td>US-02</td>
-                    <td>Listar productos</td>
-                    <td>COMO usuario<br>
-                        QUIERO listar los productos<br>
-                        PARA poder hacer un seguimiento de los mismos y poder filtrarlos
-                    </td>
-                </tr>
+                {{/each}}
             </tbody>
         </table>
         <h2>Casos de prueba</h2>
         <table class="table">
-            <thead>
-                <th>Suite de prueba</th>
+            <thead class="table-primary">
                 <th>Etiqueta</th>
                 <th>Nombre</th>
                 <th>Descripción</th>
+                <th>Suite de prueba</th>
             </thead>
             <tbody>
+                {{#each testCases}}
                 <tr>
-                    <td>TS-01 Módulo de catálogo</td>
-                    <td>TC-01</td>
-                    <td>Validar registro de producto</td>
-                    <td>DADO que un usuario se encuentra autenticado en la aplicación<br>
-                        Y ha ingresado los datos obligatorios del producto<br>
-                        CUANDO haga clic en "Guardar"<br>
-                        ENTONCES se mostrará un mensaje "Se ha registrado satisfactoriamente"<br>
-                        Y será redireccionado al listado de productos.
-                    </td>
+                    <td>{{tag}}</td>
+                    <td>{{title}}</td>
+                    <td>{{description}}</td>
+                    <td>{{testSuite.tag}} {{testSuite.title}}</td>
                 </tr>
-                <tr>
-                    <td>TS-01 Módulo de catálogo</td>
-                    <td>TC-02</td>
-                    <td>Validar listado de producto</td>
-                    <td>DADO que un usuario se encuentra autenticado en la aplicación<br>
-                        Y ha ingresado los datos obligatorios del producto<br>
-                        CUANDO haga clic en "Guardar"<br>
-                        ENTONCES se mostrará un mensaje "Se ha registrado satisfactoriamente"<br>
-                        Y será redireccionado al listado de productos.
-                    </td>
-                </tr>
+                {{/each}}
             </tbody>
         </table>
         <h2 id="traceability">Matriz de trazabilidad de requisitos</h2>
         <table class="table">
-            <thead>
+            <thead class="table-primary">
                 <th>HU</th>
                 <th>Nombre</th>
                 <th>Criterios de aceptación</th>
                 <th>Casos de prueba</th>
             </thead>
             <tbody>
+                {{#each userStories}}
                 <tr>
-                    <td rowspan="3">US-01</td>
-                    <td rowspan="3">Registrar productos</td>
-                    <td>Criterio de aceptación 1</td>
-                    <td>TC01: Validar registro de producto</td>
+                    <td rowspan="{{userStoryCriterias.length}}">{{tag}}</td>
+                    <td rowspan="{{userStoryCriterias.length}}">{{name}}</td>
+                    {{#with userStoryCriterias.[0]}}
+                    <td>{{description}}</td>
+                    <td>{{testCase.tag}} {{testCase.title}}</td>
+                    {{/with}}
                 </tr>
+                {{#each userStoryCriterias}}
+                {{#greaterThan @index 0}}
                 <tr>
-                    <td>Criterio de aceptación 2</td>
-                    <td>TC02: Validar edición del producto</td>
+                    <td>{{description}}</td>
+                    <td>{{testCase.tag}} {{testCase.title}}</td>
                 </tr>
-                <tr>
-                    <td>Criterio de aceptación 3</td>
-                    <td>TC03: Validar listado de productos</td>
-                </tr>
-                <tr>
-                    <td rowspan="3">US-02</td>
-                    <td rowspan="3">Registrar categorías</td>
-                    <td>Criterio de aceptación 1</td>
-                    <td>TC04: Validar registro de categorías</td>
-                </tr>
-                <tr>
-                    <td>Criterio de aceptación 2</td>
-                    <td>TC05: Validar edición de categorías</td>
-                </tr>
-                <tr>
-                    <td>Criterio de aceptación 3</td>
-                    <td>TC06: Validar listado de categorías</td>
-                </tr>
+                {{/greaterThan}}
+                {{/each}}
+                {{/each}}
             </tbody>
         </table>
         <div class="row">
             <h2 id="results">Resultados</h2>
-        </div><!--.row-->
+        </div>
+        <!--.row-->
         <div class="row">
             <div class="col-lg-6">
                 <h3 id="requirement-coverage">Cobertura de requisitos</h3>
@@ -153,15 +109,18 @@
                 <p>Total de requisitos cubiertos: 1</p>
                 <p>KPI: 50.0%</p>
                 <div id="requirement-coverage-chart"></div>
-            </div><!--.col-->
+            </div>
+            <!--.col-->
             <div class="col-lg-6">
                 <h3 id="test-design-coverage">Cobertura de diseño de las pruebas</h3>
                 <p>Total de pruebas planificadas: 2</p>
                 <p>Total de pruebas asignadas a historias de usuario: 2</p>
                 <p>KPI: 100.0%</p>
                 <div id="test-design-coverage-chart"></div>
-            </div><!--.col-->
-        </div><!--.row-->
+            </div>
+            <!--.col-->
+        </div>
+        <!--.row-->
 
         <h3 id="test-execution-coverage">Cobertura de ejecución de pruebas</h3>
         <p>Total de pruebas ejecutadas: 4</p>

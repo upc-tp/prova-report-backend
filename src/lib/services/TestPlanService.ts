@@ -12,6 +12,8 @@ import { TestPlanUpdateDTO } from "../dtos/test-plan/TestPlanUpdateDTO";
 import { UserClaims } from "../interfaces/UserClaims";
 import { VersionsRepository } from "../repositories/VersionsRepository";
 import { generatePDF } from "../reports/Pdf";
+import { UserStoryRepository } from "../repositories/UserStoryRepository";
+import { TestCaseRepository } from "../repositories/TestCaseRepository";
 
 @singleton()
 export class TestPlanService {
@@ -144,7 +146,56 @@ export class TestPlanService {
 
     async getPdf(id: number, reportDate: string): Promise<TestPlan> {
         try {
-            const pdf = generatePDF('report', { id, reportDate });
+            const conn = await this._database.getConnection();
+            const testPlanRepo = conn.getCustomRepository(TestPlanRepository);
+            const testCaseRepo = conn.getCustomRepository(TestCaseRepository);
+            const userStoryRepo = conn.getCustomRepository(UserStoryRepository);
+
+            const testPlan = await testPlanRepo.findOne(id, {
+                relations: [
+                    "project",
+                    "version"
+                ]
+            });
+            if (!testPlan) {
+                const notFoundError = new BusinessError(StringUtils.format(ProvaConstants.MESSAGE_RESPONSE_NOT_FOUND, 'Test Plan', id.toString()), 404);
+                return Promise.reject(notFoundError);
+            }
+
+            const userStories = await userStoryRepo.find({
+                where: {
+                    project: {
+                        id: testPlan.project.id
+                    }
+                },
+                relations: [
+                    "userStoryCriterias",
+                    "userStoryCriterias.testCase"
+                ]
+            });
+
+            const testCases = await testCaseRepo.find({
+                where: {
+                    testSuite: {
+                        testPlan: {
+                            id
+                        }
+                    }
+                },
+                relations: [
+                    "testSuite"
+                ]
+            });
+
+            console.log('generating pdf...');
+            const data = {
+                reportDate,
+                testPlan,
+                userStories,
+                testCases
+            }
+            const pdf = generatePDF('report', data);
+            console.log("pdf generated sucessfully");
             return pdf;
         } catch (error) {
             console.error(error);

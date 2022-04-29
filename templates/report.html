@@ -32,7 +32,7 @@
         <h2 id="general">Datos de la planificación</h2>
 
         <table class="table">
-            <thead>
+            <thead class="table-primary">
                 <th>Proyecto</th>
                 <th>Plan de prueba</th>
                 <th>Versión</th>
@@ -47,7 +47,7 @@
         </table>
         <h2>Historias de usuario</h2>
         <table class="table">
-            <thead>
+            <thead class="table-primary">
                 <th>Etiqueta</th>
                 <th>Nombre</th>
                 <th>Descripción</th>
@@ -73,15 +73,14 @@
         </table>
         <h2>Casos de prueba</h2>
         <table class="table">
-            <thead>
-                <th>Suite de prueba</th>
+            <thead class="table-primary">
                 <th>Etiqueta</th>
                 <th>Nombre</th>
                 <th>Descripción</th>
+                <th>Suite de prueba</th>
             </thead>
             <tbody>
                 <tr>
-                    <td>TS-01 Módulo de catálogo</td>
                     <td>TC-01</td>
                     <td>Validar registro de producto</td>
                     <td>DADO que un usuario se encuentra autenticado en la aplicación<br>
@@ -90,9 +89,9 @@
                         ENTONCES se mostrará un mensaje "Se ha registrado satisfactoriamente"<br>
                         Y será redireccionado al listado de productos.
                     </td>
+                    <td>TS-01 Módulo de catálogo</td>
                 </tr>
                 <tr>
-                    <td>TS-01 Módulo de catálogo</td>
                     <td>TC-02</td>
                     <td>Validar listado de producto</td>
                     <td>DADO que un usuario se encuentra autenticado en la aplicación<br>
@@ -101,12 +100,13 @@
                         ENTONCES se mostrará un mensaje "Se ha registrado satisfactoriamente"<br>
                         Y será redireccionado al listado de productos.
                     </td>
+                    <td>TS-01 Módulo de catálogo</td>
                 </tr>
             </tbody>
         </table>
         <h2 id="traceability">Matriz de trazabilidad de requisitos</h2>
         <table class="table">
-            <thead>
+            <thead class="table-primary">
                 <th>HU</th>
                 <th>Nombre</th>
                 <th>Criterios de aceptación</th>

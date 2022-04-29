@@ -4,6 +4,14 @@ import puppeteer = require('puppeteer');
 import path = require('path');
 import { BusinessError } from '../common/business-error';
 
+hbs.registerHelper('greaterThan', function (v1, v2, options) {
+    'use strict';
+    if (v1 > v2) {
+        return options.fn(this);
+    }
+    return options.inverse(this);
+});
+
 let browser;
 export async function compileHandlebars(templateName: string, data: any) {
     console.log("BASE_DIRECTORY => ", process.env.PWD);
