@@ -1,6 +1,8 @@
 import "reflect-metadata";
 require('dotenv').config();
 
+global.__basedir = __dirname;
+
 //#region Dependencies
 
 import morgan = require('morgan');

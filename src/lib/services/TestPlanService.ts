@@ -10,6 +10,7 @@ import { TestPlan } from "../models/TestPlan.entity";
 import { TestPlanSaveDTO } from "../dtos/test-plan/TestPlanSaveDTO";
 import { TestPlanUpdateDTO } from "../dtos/test-plan/TestPlanUpdateDTO";
 import { UserClaims } from "../interfaces/UserClaims";
+import { generatePDF } from "../reports/Pdf";
 
 @singleton()
 export class TestPlanService {
@@ -121,6 +122,16 @@ export class TestPlanService {
             }).catch(error => {
                 return Promise.reject(error);
             });
+        } catch (error) {
+            console.error(error);
+            return Promise.reject(error);
+        }
+    }
+
+    async getPdf(id: number, reportDate: string): Promise<TestPlan> {
+        try {
+            const pdf = generatePDF('report', { id, reportDate });
+            return pdf;
         } catch (error) {
             console.error(error);
             return Promise.reject(error);
