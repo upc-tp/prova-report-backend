@@ -4,10 +4,18 @@ import puppeteer = require('puppeteer');
 import path = require('path');
 import { BusinessError } from '../common/business-error';
 
+hbs.registerHelper('greaterThan', function (v1, v2, options) {
+    'use strict';
+    if (v1 > v2) {
+        return options.fn(this);
+    }
+    return options.inverse(this);
+});
+
 let browser;
 export async function compileHandlebars(templateName: string, data: any) {
-    console.log("BASE_DIRECTORY => ", process.env.PWD);
-    const basedir = process.env.PWD;
+    console.log("BASE_DIRECTORY => ", process.cwd());
+    const basedir = process.cwd();
     const filePath = path.join(basedir, 'templates', `${templateName}.hbs`);
     if (!filePath) {
         throw new BusinessError(`No se pudo encontrar la plantilla ${templateName}.hbs para el reporte PDF`, 400);
