@@ -14,8 +14,8 @@ hbs.registerHelper('greaterThan', function (v1, v2, options) {
 
 let browser;
 export async function compileHandlebars(templateName: string, data: any) {
-    console.log("BASE_DIRECTORY => ", process.env.PWD);
-    const basedir = process.env.PWD;
+    console.log("BASE_DIRECTORY => ", process.cwd());
+    const basedir = process.cwd();
     const filePath = path.join(basedir, 'templates', `${templateName}.hbs`);
     if (!filePath) {
         throw new BusinessError(`No se pudo encontrar la plantilla ${templateName}.hbs para el reporte PDF`, 400);
