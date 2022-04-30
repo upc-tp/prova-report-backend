@@ -120,11 +120,29 @@ export class TestPlanService {
         try {
             const conn = await this._database.getConnection();
             return await conn.transaction(async transactionalEntityManager => {
+                const projectRepo = transactionalEntityManager.getCustomRepository(ProjectRepository);
                 const testPlanRepo = transactionalEntityManager.getCustomRepository(TestPlanRepository);
+                const versionRepo = transactionalEntityManager.getCustomRepository(VersionsRepository);
                 const entity = await testPlanRepo.findOne(id);
                 if (!entity) {
                     const notFoundError = new BusinessError(StringUtils.format(ProvaConstants.MESSAGE_RESPONSE_NOT_FOUND, 'Test Plan', id.toString()), 404);
                     return Promise.reject(notFoundError);
+                }
+                const project = await projectRepo.findOne(dto.projectId);
+                if (!project) {
+                    const notFoundError = new BusinessError(StringUtils.format(ProvaConstants.MESSAGE_RESPONSE_NOT_FOUND, 'Projects', dto.projectId.toString()), 404);
+                    return Promise.reject(notFoundError);
+                }
+                entity.project = project;
+                if (dto.versionId > 0) {
+                    const version = await versionRepo.findOne(dto.versionId);
+                    if (!version) {
+                        const notFoundError = new BusinessError(StringUtils.format(ProvaConstants.MESSAGE_RESPONSE_NOT_FOUND, 'Version', dto.versionId.toString()), 404);
+                        return Promise.reject(notFoundError);
+                    }
+                    entity.version = version;
+                } else {
+                    entity.version = null;
                 }
                 console.log("Updating test plan:");
                 entity.title = dto.title;
