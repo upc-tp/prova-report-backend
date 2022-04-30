@@ -164,8 +164,8 @@ export class TestPlanService {
 
             const userStories = await userStoryRepo.find({
                 where: {
-                    project: {
-                        id: testPlan.project.id
+                    testPlan: {
+                        id
                     }
                 },
                 relations: [
