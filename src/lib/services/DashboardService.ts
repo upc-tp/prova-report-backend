@@ -204,7 +204,7 @@ export class DashboardService {
             const acceptedDefectId = ProvaConstants.DEFECT_STATE_ACCEPTED;
             const defectsFixedQuery = `SELECT 
             IFNULL(SUM(IF(d.is_fixed = 1, 1, 0)), 0) as fixed_defects, 
-            COUNT(d.id) as accepted_tests 
+            COUNT(d.id) as accepted_defects 
             FROM defects d
             INNER JOIN test_cases tc
             ON tc.id = d.test_case_id

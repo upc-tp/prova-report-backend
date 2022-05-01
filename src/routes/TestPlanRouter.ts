@@ -11,6 +11,7 @@ import { authorize } from '../lib/middlewares/authorize';
 import { TestPlanService } from '../lib/services/TestPlanService';
 import { TestPlanSaveDTO } from '../lib/dtos/test-plan/TestPlanSaveDTO';
 import { TestPlanUpdateDTO } from '../lib/dtos/test-plan/TestPlanUpdateDTO';
+import { DateUtils } from '../lib/common/DateUtils';
 
 const _testPlanService = container.resolve(TestPlanService);
 
@@ -45,6 +46,22 @@ router.get('/:id', async (req: Request, res: Response, next: NextFunction) => {
         const message = StringUtils.format(ProvaConstants.MESSAGE_RESPONSE_GET_SUCCESS, 'Plan de prueba');
         const response = SingleResponse(message, true, result);
         res.status(200).send(response);
+    } catch (error) {
+        return next(error);
+    }
+});
+
+router.get('/:id/pdf', async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const id = +req.params.id;
+        const reportDate = DateUtils.formatToDayMonthAndYear(new Date());
+        const result = await _testPlanService.getPdf(id, reportDate);
+        if(!result) {
+            throw new BusinessError(StringUtils.format(ProvaConstants.MESSAGE_RESPONSE_NOT_FOUND, 'Plan de prueba', id.toString()), 404);
+        }
+        res.setHeader('Content-Type', 'application/pdf');
+        res.setHeader('Content-Disposition', `attachment; filename=plan-de-pruebas-${reportDate}.pdf`);
+        res.status(200).send(result);
     } catch (error) {
         return next(error);
     }

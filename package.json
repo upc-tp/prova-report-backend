@@ -6,6 +6,8 @@
   "scripts": {
     "start": "tsc --build tsconfig.json && node dist/index.js",
     "build": "tsc --build tsconfig.json",
+    "start-unix": "tsc --build tsconfig.json && cp -R templates dist/templates && node dist/index.js",
+    "build-unix": "tsc --build tsconfig.json && cp -R templates dist/templates",
     "build:watch": "tsc --build tsconfig.json --watch",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -33,10 +35,12 @@
     "elementtree": "^0.1.7",
     "express": "^4.17.1",
     "express-xml-bodyparser": "^0.3.0",
+    "handlebars": "^4.7.7",
     "jsonwebtoken": "^8.5.1",
     "morgan": "^1.10.0",
     "mysql": "^2.18.1",
     "nodemailer": "^6.7.3",
+    "puppeteer": "^13.7.0",
     "reflect-metadata": "^0.1.13",
     "tsyringe": "^4.6.0",
     "typeorm": "^0.2.41"

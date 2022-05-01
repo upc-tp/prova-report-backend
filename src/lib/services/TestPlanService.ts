@@ -10,6 +10,10 @@ import { TestPlan } from "../models/TestPlan.entity";
 import { TestPlanSaveDTO } from "../dtos/test-plan/TestPlanSaveDTO";
 import { TestPlanUpdateDTO } from "../dtos/test-plan/TestPlanUpdateDTO";
 import { UserClaims } from "../interfaces/UserClaims";
+import { VersionsRepository } from "../repositories/VersionsRepository";
+import { generatePDF } from "../reports/Pdf";
+import { UserStoryRepository } from "../repositories/UserStoryRepository";
+import { TestCaseRepository } from "../repositories/TestCaseRepository";
 
 @singleton()
 export class TestPlanService {
@@ -25,6 +29,7 @@ export class TestPlanService {
             const skip = (page - 1) * pageSize;
             const testPlanRepo = conn.getCustomRepository(TestPlanRepository);
             const qb = testPlanRepo.createQueryBuilder("t")
+                .leftJoinAndSelect('t.version','v')
                 .innerJoinAndSelect('t.project', 'p')
                 .leftJoin("users_projects", "up", "up.project_id = p.id")
                 .where(`t.deleted_at is null`);
@@ -64,6 +69,7 @@ export class TestPlanService {
                 },
                 relations: [
                     "project",
+                    "version"
                 ],
                 withDeleted: true
             });
@@ -81,12 +87,23 @@ export class TestPlanService {
             return await conn.transaction(async transactionalEntityManager => {
                 const projectRepo = transactionalEntityManager.getCustomRepository(ProjectRepository);
                 const testPlanRepo = transactionalEntityManager.getCustomRepository(TestPlanRepository);
+                const versionRepo = transactionalEntityManager.getCustomRepository(VersionsRepository);
                 const project = await projectRepo.findOne(dto.projectId);
                 if (!project) {
                     const notFoundError = new BusinessError(StringUtils.format(ProvaConstants.MESSAGE_RESPONSE_NOT_FOUND, 'Projects', dto.projectId.toString()), 404);
                     return Promise.reject(notFoundError);
                 }
                 entity.project = project;
+                if (dto.versionId > 0) {
+                    const version = await versionRepo.findOne(dto.versionId);
+                    if (!version) {
+                        const notFoundError = new BusinessError(StringUtils.format(ProvaConstants.MESSAGE_RESPONSE_NOT_FOUND, 'Version', dto.versionId.toString()), 404);
+                        return Promise.reject(notFoundError);
+                    }
+                    entity.version = version;
+                } else {
+                    entity.version = null;
+                }
                 console.log("Creating test plan:");
                 console.log(entity);
                 const testPlan = testPlanRepo.save(entity);
@@ -105,11 +122,29 @@ export class TestPlanService {
         try {
             const conn = await this._database.getConnection();
             return await conn.transaction(async transactionalEntityManager => {
+                const projectRepo = transactionalEntityManager.getCustomRepository(ProjectRepository);
                 const testPlanRepo = transactionalEntityManager.getCustomRepository(TestPlanRepository);
+                const versionRepo = transactionalEntityManager.getCustomRepository(VersionsRepository);
                 const entity = await testPlanRepo.findOne(id);
                 if (!entity) {
                     const notFoundError = new BusinessError(StringUtils.format(ProvaConstants.MESSAGE_RESPONSE_NOT_FOUND, 'Test Plan', id.toString()), 404);
                     return Promise.reject(notFoundError);
+                }
+                const project = await projectRepo.findOne(dto.projectId);
+                if (!project) {
+                    const notFoundError = new BusinessError(StringUtils.format(ProvaConstants.MESSAGE_RESPONSE_NOT_FOUND, 'Projects', dto.projectId.toString()), 404);
+                    return Promise.reject(notFoundError);
+                }
+                entity.project = project;
+                if (dto.versionId > 0) {
+                    const version = await versionRepo.findOne(dto.versionId);
+                    if (!version) {
+                        const notFoundError = new BusinessError(StringUtils.format(ProvaConstants.MESSAGE_RESPONSE_NOT_FOUND, 'Version', dto.versionId.toString()), 404);
+                        return Promise.reject(notFoundError);
+                    }
+                    entity.version = version;
+                } else {
+                    entity.version = null;
                 }
                 console.log("Updating test plan:");
                 entity.title = dto.title;
@@ -121,6 +156,65 @@ export class TestPlanService {
             }).catch(error => {
                 return Promise.reject(error);
             });
+        } catch (error) {
+            console.error(error);
+            return Promise.reject(error);
+        }
+    }
+
+    async getPdf(id: number, reportDate: string): Promise<TestPlan> {
+        try {
+            const conn = await this._database.getConnection();
+            const testPlanRepo = conn.getCustomRepository(TestPlanRepository);
+            const testCaseRepo = conn.getCustomRepository(TestCaseRepository);
+            const userStoryRepo = conn.getCustomRepository(UserStoryRepository);
+
+            const testPlan = await testPlanRepo.findOne(id, {
+                relations: [
+                    "project",
+                    "version"
+                ]
+            });
+            if (!testPlan) {
+                const notFoundError = new BusinessError(StringUtils.format(ProvaConstants.MESSAGE_RESPONSE_NOT_FOUND, 'Test Plan', id.toString()), 404);
+                return Promise.reject(notFoundError);
+            }
+
+            const userStories = await userStoryRepo.find({
+                where: {
+                    testPlan: {
+                        id
+                    }
+                },
+                relations: [
+                    "userStoryCriterias",
+                    "userStoryCriterias.testCase"
+                ]
+            });
+
+            const testCases = await testCaseRepo.find({
+                where: {
+                    testSuite: {
+                        testPlan: {
+                            id
+                        }
+                    }
+                },
+                relations: [
+                    "testSuite"
+                ]
+            });
+
+            console.log('generating pdf...');
+            const data = {
+                reportDate,
+                testPlan,
+                userStories,
+                testCases
+            }
+            const pdf = generatePDF('report', data);
+            console.log("pdf generated sucessfully");
+            return pdf;
         } catch (error) {
             console.error(error);
             return Promise.reject(error);

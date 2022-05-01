@@ -38,4 +38,17 @@ export class DateUtils {
     static getDateFromISOString(isoDateString: Date) {
         return isoDateString.toISOString().split('T')[0];
     }
+
+    /**
+     * Receives one date and returns a string with the format dd-MM-yyyy
+     * @param {Date} date The date to converts to
+     * @return {string} Returns a string dd-MM-yyy
+     */
+    static formatToDayMonthAndYear(date: Date): string {
+        const month = date.getMonth() + 1;
+        const day = date.getDate();
+        const year = date.getFullYear();
+        const strDate = `${day.toString().padStart(2,'0')}-${month.toString().padStart(2,'0')}-${year.toString()}`;
+        return strDate;
+    }
 }
