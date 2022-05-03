@@ -200,7 +200,7 @@ export class DashboardService {
 
                 const testExecutionTrendQuery = `SELECT DATE(te.created_at) as day,
                 COUNT(te.id) as tests_executed_by_day,
-                AVG(te.duration) as average_duration
+                SUM(te.duration) as total_duration
                 FROM test_executions te
                 INNER JOIN test_cases tc
                 ON tc.id = te.test_case_id and tc.last_execution = te.order 
