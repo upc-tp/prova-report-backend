@@ -144,7 +144,7 @@ export class DashboardService {
                 ON te.test_case_id = tc.id
                 WHERE p.id = ${projectId}
                 ${testPlanId > 0 ? 'AND us.test_plan_id=' + testPlanId : ''}
-                ${startDate && endDate ? `AND (DATE(te.created_at) BETWEEN ${mysql.escape(startDate)} AND ${mysql.escape(endDate)})` : ''}
+                ${startDate && endDate ? `AND IF(tc.last_execution > 0, (DATE(te.created_at) BETWEEN ${mysql.escape(startDate)} AND ${mysql.escape(endDate)}), 1)` : ''}
                 GROUP BY us.id
                 ORDER BY us.tag;`;
                 let userStoryExecutedTestsPromise = transactionalEntityManager.query(queryRequirementCoverage);
@@ -247,11 +247,11 @@ export class DashboardService {
                     categories,
                     series: [
                         {
-                            name: 'Historias cubiertas',
+                            name: 'Casos de prueba ejecutados',
                             data: coveredSerie
                         },
                         {
-                            name: 'Historias no cubiertas',
+                            name: 'Casos de prueba no ejecutados',
                             data: uncoveredSerie
                         }
                     ],
