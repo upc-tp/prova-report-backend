@@ -229,7 +229,7 @@ export class DashboardService {
                 ]);
 
                 let testExecutionTrend = results[8].map(tet => {
-                    tet.day = DateUtils.getDateFromISOString(tet.day);
+                    tet.day = DateUtils.formatToDayMonthAndYear(tet.day);
                     tet.tests_executed_by_day = +tet.tests_executed_by_day;
                     tet.total_duration = +tet.total_duration;
                     return tet;
