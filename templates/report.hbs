@@ -23,7 +23,7 @@
             <thead class="table-primary">
                 <th>Proyecto</th>
                 <th>Plan de prueba</th>
-                <th>Versión</th>
+                <th>Versión del proyecto</th>
             </thead>
             <tbody>
                 <tr>
@@ -98,6 +98,37 @@
                 {{/each}}
             </tbody>
         </table>
+
+        <h2 id="defects">Defectos reportados</h2>
+        <table class="table">
+            <thead class="table-primary">
+                <th>Etiqueta</th>
+                <th>Nombre</th>
+                <th>Severidad</th>
+                <th>Prioridad</th>
+                <th>Estado</th>
+            </thead>
+            <tbody>
+                {{#each defects}}
+                <tr>
+                    <td>{{tag}}</td>
+                    <td>{{title}}</td>
+                    <td>{{severity.name}}</td>
+                    <td>{{priority.name}}</td>
+                    <td>{{defectState.name}}</td>
+                </tr>
+                {{/each}}
+                
+                <tr>
+                    <td>DT-02</td>
+                    <td>Error al registrar categoría</td>
+                    <td>Normal</td>
+                    <td>Media</td>
+                    <td>Aceptado</td>
+                </tr>
+            </tbody>
+        </table>
+        
         <div class="row">
             <h2 id="results">Resultados</h2>
         </div>

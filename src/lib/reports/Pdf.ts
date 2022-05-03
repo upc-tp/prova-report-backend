@@ -44,7 +44,7 @@ export async function generatePDF(fileName: string, data: any) {
         waitUntil: ['load', 'domcontentloaded', 'networkidle0', 'networkidle2'],
     });
     await page.setContent(content);
-    await page.waitFor(3000);
+    await page.waitFor(1000);
 
     const pdf = await page.pdf({
         format: "A4",
