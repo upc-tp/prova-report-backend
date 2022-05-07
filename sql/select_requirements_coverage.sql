@@ -14,5 +14,6 @@ LEFT JOIN test_executions te
 ON te.test_case_id = tc.id
 WHERE p.id = 41
 AND us.test_plan_id = 12
+AND IF(tc.last_execution > 0, (DATE(te.created_at) BETWEEN '2022-04-01' AND '2022-05-02'), 1)
 GROUP BY us.id
 ORDER BY us.tag;

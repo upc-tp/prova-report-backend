@@ -14,6 +14,7 @@ import { VersionsRepository } from "../repositories/VersionsRepository";
 import { generatePDF } from "../reports/Pdf";
 import { UserStoryRepository } from "../repositories/UserStoryRepository";
 import { TestCaseRepository } from "../repositories/TestCaseRepository";
+import { DefectRepository } from "../repositories/DefectRepository";
 
 @singleton()
 export class TestPlanService {
@@ -167,6 +168,7 @@ export class TestPlanService {
             const conn = await this._database.getConnection();
             const testPlanRepo = conn.getCustomRepository(TestPlanRepository);
             const testCaseRepo = conn.getCustomRepository(TestCaseRepository);
+            const defectRepo = conn.getCustomRepository(DefectRepository);
             const userStoryRepo = conn.getCustomRepository(UserStoryRepository);
 
             const testPlan = await testPlanRepo.findOne(id, {
@@ -180,7 +182,7 @@ export class TestPlanService {
                 return Promise.reject(notFoundError);
             }
 
-            const userStories = await userStoryRepo.find({
+            const userStoriesPromise = await userStoryRepo.find({
                 where: {
                     testPlan: {
                         id
@@ -192,7 +194,26 @@ export class TestPlanService {
                 ]
             });
 
-            const testCases = await testCaseRepo.find({
+            const defectsPromise = await defectRepo.find({
+                where: {
+                    testCase: {
+                        testSuite: {
+                            testPlan: {
+                                id
+                            }
+                        }
+                    }
+                },
+                relations: [
+                    "testCase",
+                    "testCase.testSuite",
+                    "defectState",
+                    "priority",
+                    "severity"
+                ]
+            })
+
+            const testCasesPromise = await testCaseRepo.find({
                 where: {
                     testSuite: {
                         testPlan: {
@@ -205,12 +226,19 @@ export class TestPlanService {
                 ]
             });
 
+            const [userStories, testCases, defects] = await Promise.all([
+                userStoriesPromise,
+                testCasesPromise,
+                defectsPromise
+            ]);
+
             console.log('generating pdf...');
             const data = {
                 reportDate,
                 testPlan,
                 userStories,
-                testCases
+                testCases,
+                defects
             }
             const pdf = generatePDF('report', data);
             console.log("pdf generated sucessfully");

@@ -23,6 +23,7 @@
             <li><a href="#user-stories">Historias de usuario</a></li>
             <li><a href="#test-cases">Casos de prueba</a></li>
             <li><a href="#traceability">Matriz de trazabilidad de requisitos</a></li>
+            <li><a href="#defects">Defectos reportados</a></li>
             <li><a href="#results">Resultados</a></li>
             <!-- <li><a href="#requirement-coverage">Cobertura de requisitos</a></li>
             <li><a href="#test-design-coverage">Cobertura de diseño de pruebas</a></li>
@@ -143,31 +144,80 @@
                 </tr>
             </tbody>
         </table>
+        <h2 id="defects">Defectos reportados</h2>
+        <table class="table">
+            <thead class="table-primary">
+                <th>Etiqueta</th>
+                <th>Nombre</th>
+                <th>Severidad</th>
+                <th>Prioridad</th>
+                <th>Estado</th>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>DT-01</td>
+                    <td>Error al registrar producto</td>
+                    <td>Crítico</td>
+                    <td>Alta</td>
+                    <td>Aceptado</td>
+                </tr>
+                <tr>
+                    <td>DT-02</td>
+                    <td>Error al registrar categoría</td>
+                    <td>Normal</td>
+                    <td>Media</td>
+                    <td>Aceptado</td>
+                </tr>
+            </tbody>
+        </table>
         <div class="row">
             <h2 id="results">Resultados</h2>
-        </div><!--.row-->
+        </div>
+        <!--.row-->
+        <br>
         <div class="row">
-            <div class="col-lg-6">
-                <h3 id="requirement-coverage">Cobertura de requisitos</h3>
-                <p>Total de requisitos: 2</p>
-                <p>Total de requisitos cubiertos: 1</p>
-                <p>KPI: 50.0%</p>
+            <h3 id="requirement-coverage">Cobertura de requisitos</h3>
+            <p>Total de requisitos: 2</p>
+            <p>Total de requisitos cubiertos: 1</p>
+            <p>Requirements Coverage = 50.0%</p>
+        </div>
+        <!--.row-->
+        <div class="row">
+            <div class="col-lg-6 mx-auto">
                 <div id="requirement-coverage-chart"></div>
-            </div><!--.col-->
-            <div class="col-lg-6">
-                <h3 id="test-design-coverage">Cobertura de diseño de las pruebas</h3>
-                <p>Total de pruebas planificadas: 2</p>
-                <p>Total de pruebas asignadas a historias de usuario: 2</p>
-                <p>KPI: 100.0%</p>
+            </div>
+            <!--.col-->
+        </div>
+        <!--.row-->
+        <br>
+        <div class="row">
+            <h3 id="test-design-coverage">Cobertura de diseño de las pruebas</h3>
+            <p>Total de pruebas planificadas: 2</p>
+            <p>Total de pruebas asignadas a historias de usuario: 2</p>
+            <p>Test Design Coverage = 100.0%</p>
+        </div>
+        <div class="row">
+            <div class="col-lg-6 mx-auto">
                 <div id="test-design-coverage-chart"></div>
-            </div><!--.col-->
-        </div><!--.row-->
-
-        <h3 id="test-execution-coverage">Cobertura de ejecución de pruebas</h3>
-        <p>Total de pruebas ejecutadas: 4</p>
-        <p>Total de pruebas planificadas: 5</p>
-        <p>KPI: 80.0%</p>
-        <div id="test-execution-coverage-chart"></div>
+            </div>
+            <!--.col-->
+        </div>
+        <!--.row-->
+        <br>
+        <div class="row">
+            <h3 id="test-execution-coverage">Cobertura de ejecución de pruebas</h3>
+            <p>Total de pruebas ejecutadas: 4</p>
+            <p>Total de pruebas planificadas: 5</p>
+            <p>Test Execution Coverage: 80.0%</p>
+        </div>
+        <!--.row-->
+        <div class="row">
+            <div class="col-lg-6 mx-auto">
+                <div id="test-execution-coverage-chart"></div>
+            </div>
+            <!--.col-->
+        </div>
+        <!--.row-->
     </div>
     <!--.container-->
 
@@ -221,6 +271,7 @@
         chart: {
             id: 'test-design-coverage',
             width: 380,
+            height: 400,
             type: 'pie',
         },
         labels: ['Pruebas sin asociar', 'Pruebas asociadas a casos de prueba'],
@@ -245,6 +296,7 @@
         chart: {
             id: 'test-execution-coverage',
             width: 380,
+            height: 400,
             type: 'pie',
         },
         labels: ['Pruebas no ejecutadas', 'Pruebas ejecutadas'],
