@@ -97,6 +97,109 @@ export class ProjectService {
         }
     }
 
+    async getNoCollaborators(page: number, pageSize: number, sortOrder: string = ProvaConstants.SORT_ORDER_DESC, search: string, projectId: number = null): Promise<[CollaboratorDTO[], number]> {
+        try {
+            const conn = await this._database.getConnection();
+            const skip = (page - 1) * pageSize;
+            const userRepo = conn.getCustomRepository(UserRepository);
+            const userClaims = container.resolve(UserClaims);
+            const qb = userRepo.createQueryBuilder("u")
+                .innerJoin("users_projects", "up", "up.user_id = u.id")
+                .where(`u.deleted_at is null`);
+            if (search) {
+                qb.andWhere(`concat(u.first_name,u.last_name,u.email) like '%${search}%'`);
+            }
+            if(projectId) {
+                qb.andWhere(`up.project_id != ${projectId}`);
+            }
+
+            if(userClaims.payload.uid) {
+                qb.andWhere(`up.created_by = "${userClaims.payload.email}"`);
+            }
+ 
+            qb.orderBy({
+                "u.id": sortOrder as any
+            });
+            if (page && pageSize) {
+                qb.skip(skip);
+                qb.take(pageSize);
+            }
+            const [users, count] = await qb.getManyAndCount();
+            const noCollaborators = users.map(u => {
+                const collaborator : CollaboratorDTO = {
+                    uid: u.id,
+                    role: u.role,
+                    firstName: u.firstName,
+                    lastName: u.lastName,
+                    email: u.email
+                    };
+                return collaborator;
+            });
+
+            const [collaborators, count2] = await this.getCollaborators(page, pageSize, sortOrder, search, projectId);
+            const resultCollaborators = noCollaborators.filter(x => { return !collaborators.some(x2 => {return x.uid === x2.uid})});
+
+            return [resultCollaborators, count];
+        } catch (error) {
+            console.error(error);
+            return Promise.reject(error);
+        }
+    }
+
+    async assignCollaborator(projectId: number, userId: number): Promise<CollaboratorDTO> {
+        try {
+            const conn = await this._database.getConnection();
+            return await conn.transaction(async transactionalEntityManager => {
+                const userRepo = transactionalEntityManager.getCustomRepository(UserRepository);
+                const projectRepo = transactionalEntityManager.getCustomRepository(ProjectRepository);
+                const userProjectRepo = transactionalEntityManager.getCustomRepository(UserProjectRepository);
+                const entity = await userRepo.findOne(userId);
+                if (!entity) {
+                    const notFoundError = new BusinessError(StringUtils.format(ProvaConstants.MESSAGE_RESPONSE_NOT_FOUND, 'Users', userId.toString()), 404);
+                    return Promise.reject(notFoundError);
+                }
+                const project = await projectRepo.findOne(projectId);
+                if (!project) {
+                    const notFoundError = new BusinessError(StringUtils.format(ProvaConstants.MESSAGE_RESPONSE_NOT_FOUND, 'Projects', projectId.toString()), 404);
+                    return Promise.reject(notFoundError);
+                }
+                const userProject = new UserProject();
+                userProject.accessType = 'Collaborator';
+                userProject.project = project;
+                userProject.user = entity;
+                await userProjectRepo.save(userProject);
+                
+                const collaborator : CollaboratorDTO = {
+                    uid: entity.id,
+                    firstName: entity.firstName,
+                    lastName: entity.lastName,
+                    email: entity.email,
+                    role: entity.role
+                };
+                try {
+                    await transporter.sendMail({
+                        from: '"Prova Report" <' + process.env.SMTP_FROM_EMAIL + '>',
+                        to: entity.email,
+                        subject: "Te han incluido en un nuevo proyecto!",
+                        html: `
+                        <h1 style="color: #2e6c80;">Hola ${entity.firstName}, ahora eres colaborador de ${project.title}</h1>
+                            <h3 style="color: #2e6c80;">Puedes acceder al proyecto desde este link: <a href="${'http://' + process.env.CLIENT_URL + '/detalle-proyectos?projectId=' + project.id}">Proyecto</a></h3>
+                        `,
+                    });
+                } catch (error) {
+                    console.error(error);
+                }
+                return collaborator;
+            }).catch(error => {
+                return Promise.reject(error);
+            });
+        } catch (error) {
+            console.error(error);
+            return Promise.reject(error);
+        }
+    }   
+
+
     async getById(id: number): Promise<Project> {
         try {
             const conn = await this._database.getConnection();

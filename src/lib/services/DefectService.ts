@@ -8,12 +8,15 @@ import { DefectBulkUpdateDTO } from "../dtos/defect/DefectBulkUpdateDTO";
 import { DefectSaveDTO } from "../dtos/defect/DefectSaveDTO";
 import { DefectUpdateDTO } from "../dtos/defect/DefectUpdateDTO";
 import { Defect } from "../models/Defects.entity";
+import { generatePDF } from "../reports/Pdf";
 import { DefectRepository } from "../repositories/DefectRepository";
 import { DefectStateRepository } from "../repositories/DefectStateRepository";
 import { PriorityRepository } from "../repositories/PriorityRepository";
+import { ProjectRepository } from "../repositories/ProjectRepository";
 import { SeverityRepository } from "../repositories/SeverityRepository";
 import { TestCaseRepository } from "../repositories/TestCaseRepository";
 import { TestExecutionRepository } from "../repositories/TestExecutionRepository";
+import { TestSuiteRepository } from "../repositories/TestSuiteRepository";
 
 @singleton()
 export class DefectService {
@@ -233,6 +236,59 @@ export class DefectService {
             }).catch(error => {
                 return Promise.reject(error);
             });
+        } catch (error) {
+            console.error(error);
+            return Promise.reject(error);
+        }
+    }
+
+    async getPdf(projectId: number, testSuiteId: number, reportDate: string): Promise<Defect[]> {
+        try {
+            const conn = await this._database.getConnection();
+            const defectRepo = conn.getCustomRepository(DefectRepository);
+            const projectRepo = conn.getCustomRepository(ProjectRepository);
+            const suiteRepo = conn.getCustomRepository(TestSuiteRepository);
+            const qb = defectRepo.createQueryBuilder("d")
+                .innerJoinAndSelect('d.defectState', 'ds')
+                .innerJoinAndSelect('d.testCase', 'tc')
+                .innerJoinAndSelect('tc.testSuite', 'ts')
+                .innerJoinAndSelect('d.testExecution', 'te')
+                .leftJoinAndSelect('d.priority', 'p')
+                .leftJoinAndSelect('d.severity', 's')
+                .where('d.deleted_at is null');
+            
+            const project = await projectRepo.findOne(projectId);
+            if (!project) {
+                const notFoundError = new BusinessError(StringUtils.format(ProvaConstants.MESSAGE_RESPONSE_NOT_FOUND, 'Project', projectId.toString()), 404);
+                return Promise.reject(notFoundError);
+            }
+
+            const suite = await projectRepo.findOne(testSuiteId);
+            if (!suite) {
+                const notFoundError = new BusinessError(StringUtils.format(ProvaConstants.MESSAGE_RESPONSE_NOT_FOUND, 'Project', testSuiteId.toString()), 404);
+                return Promise.reject(notFoundError);
+            }
+
+            if (projectId) {
+                qb.andWhere(`ts.project_id = ${projectId}`);
+            }
+
+            if (projectId) {
+                qb.andWhere(`ts.id = ${testSuiteId}`);
+            }
+
+            const defects = await qb.getMany();
+            console.log('generating pdf...');
+            const data = {
+                reportDate,
+                project,
+                suite,
+                defects
+            }
+            console.log('La data es: ', data);
+            const pdf = generatePDF('reportDefects', data);
+            console.log("pdf generated sucessfully");
+            return pdf;
         } catch (error) {
             console.error(error);
             return Promise.reject(error);
