@@ -1,0 +1,9 @@
+﻿Type,Title,Description,Priority,Severity
+ST,Módulo de catálogo,Conjunto de pruebas enfocadas a validar el módulo de catálogo,,
+TC,Listar marcas satisfactoriamente,1. Iniciar sesión en la aplicación 2. Hacer clic en el enlace Marcas 3. La aplicación debe mostrar el listado de Marcas,1,1
+TC,Registrar marca satisfactoriamente,1. Iniciar sesión en la aplicación 2. Hacer clic en el enlace Marcas 3. Ingresar al formulario de registro de marca 4. Llenar los campos obligatorios nombre y descripción 5. Dar clic en Guardar 6. La aplicación debe mostrar un mensaje satisfactorio: La marca Laive ha sido registrada satisfactoriamente,3,3
+TC,Listar categorías satisfactoriamente,1. Iniciar sesión en la aplicación 2. Hacer clic en el enlace Categorías 3. La aplicación debe mostrar el listado de Categorías,1,1
+TC,Registrar categoría satisfactoriamente,1. Iniciar sesión en la aplicación 2. Hacer clic en el enlace Categorías 3. Ingresar al formulario de registro de categoría 4. Llenar los campos obligatorios nombre y descripción 5. Dar clic en Guardar 6. La aplicación debe mostrar un mensaje satisfactorio: La categoría Frutas y verduras ha sido registrada satisfactoriamente,3,3
+ST,Módulo de cuentas de usuario,Conjunto de pruebas enfocadas a validar el módulo de cuentas de usuario,,
+TC,Iniciar sesión satisfactoriamente,1. Ingresar al formulario de inicio de sesión 2. Llenar los campos correo electrónico y contraseña 3. Dar clic en el botón Guardar 4. La aplicación debe redireccionar a la vista de Inicio,2,2
+TC,Registrarse en la aplicación satisfactoriamente,1. Ingresar al formulario de registro de cuenta 2. Llenar los campos correo electrónico contraseña y confirmar contraseña 3. Dar clic en el botón Guardar 4. La aplicación debe redireccionar a la vista de Inicio,2,2

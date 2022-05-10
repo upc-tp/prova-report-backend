@@ -214,7 +214,7 @@ export class UserStoryService {
                                     "testSuite.project"
                                 ]
                             });
-                            if (!testCase) {
+                            if (!testCase && cri.testCaseTag) {
                                 const notFoundError = new BusinessError(StringUtils.format(ProvaConstants.MESSAGE_RESPONSE_NOT_FOUND, 'Caso de prueba', cri.testCaseTag), 404);
                                 return Promise.reject(notFoundError);
                             }
