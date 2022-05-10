@@ -5,6 +5,7 @@ import { Request, Response, NextFunction } from "express";
 import { container } from "tsyringe";
 import { BusinessError } from '../lib/common/business-error';
 import { ProvaConstants } from '../lib/common/constants';
+import { DateUtils } from '../lib/common/DateUtils';
 import { ResultResponse, SingleResponse } from '../lib/common/responses';
 import { StringUtils } from '../lib/common/StringUtils';
 import { DefectBulkUpdateDTO } from '../lib/dtos/defect/DefectBulkUpdateDTO';
@@ -97,6 +98,23 @@ router.put('/:id', authorize(['Admin']), async (req: Request, res: Response, nex
         const message = StringUtils.format(ProvaConstants.MESSAGE_RESPONSE_PUT_SUCCESS, 'Defecto');
         const response = SingleResponse(message, true, result);
         res.status(200).send(response);
+    } catch (error) {
+        return next(error);
+    }
+});
+
+router.get('/:projectId/:testSuiteId/pdf', async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const projectId = +req.params.projectId;
+        const testSuiteId = +req.params.testSuiteId;
+        const reportDate = DateUtils.formatToDayMonthAndYear(new Date());
+        const result = await _defectService.getPdf(projectId,testSuiteId,reportDate);
+        if(!result) {
+            throw new BusinessError(StringUtils.format(ProvaConstants.MESSAGE_RESPONSE_NOT_FOUND, 'Defectos del proyecto y test suite', projectId.toString(), testSuiteId.toString()), 404);
+        }
+        res.setHeader('Content-Type', 'application/pdf');
+        res.setHeader('Content-Disposition', `attachment; filename=plan-de-pruebas-${reportDate}.pdf`);
+        res.status(200).send(result);
     } catch (error) {
         return next(error);
     }
