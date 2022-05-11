@@ -24,10 +24,15 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
         let pageSize = +req.query.pageSize;
         const { sortOrder, search } = req.query;
         let projectId = +req.query.projectId;
-        let defectStateId = +req.query.defectStateId;
+
+        let defectStateId = null;
+        if (req.query.defectStateId) {
+            defectStateId = req.query.defectStateId.toString().split(',').map(x => +x);
+        }
+
         let is_fixed = +req.query.is_fixed;
         const [result, count] = await _defectService.getPage(page, pageSize, sortOrder as string, search as string, projectId, defectStateId, is_fixed);
-        if(!page || !pageSize) {
+        if (!page || !pageSize) {
             page = 1;
             pageSize = count;
         }
@@ -43,7 +48,7 @@ router.get('/:id', async (req: Request, res: Response, next: NextFunction) => {
     try {
         const id = +req.params.id;
         const result = await _defectService.getById(id);
-        if(!result) {
+        if (!result) {
             throw new BusinessError(StringUtils.format(ProvaConstants.MESSAGE_RESPONSE_NOT_FOUND, 'Defecto', id.toString()), 404);
         }
         const message = StringUtils.format(ProvaConstants.MESSAGE_RESPONSE_GET_SUCCESS, 'Defectos');
@@ -108,8 +113,8 @@ router.get('/:projectId/:testSuiteId/pdf', async (req: Request, res: Response, n
         const projectId = +req.params.projectId;
         const testSuiteId = +req.params.testSuiteId;
         const reportDate = DateUtils.formatToDayMonthAndYear(new Date());
-        const result = await _defectService.getPdf(projectId,testSuiteId,reportDate);
-        if(!result) {
+        const result = await _defectService.getPdf(projectId, testSuiteId, reportDate);
+        if (!result) {
             throw new BusinessError(StringUtils.format(ProvaConstants.MESSAGE_RESPONSE_NOT_FOUND, 'Defectos del proyecto y test suite', projectId.toString(), testSuiteId.toString()), 404);
         }
         res.setHeader('Content-Type', 'application/pdf');

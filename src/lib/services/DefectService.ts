@@ -27,7 +27,7 @@ export class DefectService {
     }
 
     async getPage(page: number, pageSize: number, sortOrder: string = ProvaConstants.SORT_ORDER_DESC, search: string, projectId: number = null, 
-        defectStateId: number = null, is_fixed: number = null): Promise<[Defect[], number]> {
+        defectStateId: number[] = null, is_fixed: number = null): Promise<[Defect[], number]> {
         try {
             const conn = await this._database.getConnection();
             const skip = (page - 1) * pageSize;
@@ -49,7 +49,7 @@ export class DefectService {
             }
 
             if (defectStateId) {
-                qb.andWhere(`ds.id = ${defectStateId}`);
+                qb.andWhere(`ds.id in (${defectStateId.join()})`);
             }
 
             if (is_fixed === 0 || is_fixed === 1) {
