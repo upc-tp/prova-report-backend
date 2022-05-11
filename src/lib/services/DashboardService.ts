@@ -20,31 +20,25 @@ export class DashboardService {
                 const testsByStatus = transactionalEntityManager.query(`SELECT ts.id,
                 ts.name,
                 (SELECT COUNT(*) 
-                FROM test_executions te
-                INNER JOIN test_cases tc
-                ON tc.id = te.test_case_id
-                and te.order = tc.last_execution
+                FROM test_cases tc
                 INNER JOIN test_suites tst
                 ON tst.id = tc.test_suite_id 
-                WHERE te.test_state_id = ts.id
+                WHERE tc.test_state_id = ts.id
                 and tst.project_id = ${mysql.escape(projectId)}
                 ${testPlanId > 0 ? 'and tst.test_plan_id=' + testPlanId : ''}
-                ${startDate && endDate ? `AND (DATE(te.created_at) BETWEEN ${mysql.escape(startDate)} AND ${mysql.escape(endDate)})` : ''}
+                ${startDate && endDate ? `AND (DATE(tc.created_at) BETWEEN ${mysql.escape(startDate)} AND ${mysql.escape(endDate)})` : ''}
                 ) as num_tests
                 FROM test_states as ts;`);
 
                 const severities = await transactionalEntityManager.query(`SELECT s.id, s.name,
                 (SELECT COUNT(*) 
-                FROM test_executions te
-                INNER JOIN test_cases tc
-                ON tc.id = te.test_case_id
-                and te.order = tc.last_execution
+                FROM test_cases tc
                 INNER JOIN test_suites tst
                 ON tst.id = tc.test_suite_id 
                 WHERE tc.severity_id = s.id
                 and tst.project_id = ${mysql.escape(projectId)}
                 ${testPlanId > 0 ? 'and tst.test_plan_id=' + testPlanId : ''}
-                ${startDate && endDate ? `AND (DATE(te.created_at) BETWEEN ${mysql.escape(startDate)} AND ${mysql.escape(endDate)})` : ''}
+                ${startDate && endDate ? `AND (DATE(tc.created_at) BETWEEN ${mysql.escape(startDate)} AND ${mysql.escape(endDate)})` : ''}
                 ) as num_tests
                 FROM severities s;`);
 
@@ -65,17 +59,14 @@ export class DashboardService {
                 const testsBySeverity = Promise.all(severities.map(async (s) => {
                     s['statuses'] = await transactionalEntityManager.query(`SELECT t.id, t.name,
                 (SELECT COUNT(*)
-                FROM test_executions te
-                INNER JOIN test_cases tc
-                ON tc.id = te.test_case_id
-                and te.order = tc.last_execution
+                FROM test_cases tc
                 INNER JOIN test_suites tst
                 ON tst.id = tc.test_suite_id 
                 WHERE tst.project_id = ${mysql.escape(projectId)}
                 and tc.severity_id = ${mysql.escape(s.id)}
-                and te.test_state_id = t.id
+                and tc.test_state_id = t.id
                 ${testPlanId > 0 ? 'and tst.test_plan_id=' + testPlanId : ''}
-                ${startDate && endDate ? `AND (DATE(te.created_at) BETWEEN ${mysql.escape(startDate)} AND ${mysql.escape(endDate)})` : ''}
+                ${startDate && endDate ? `AND (DATE(tc.created_at) BETWEEN ${mysql.escape(startDate)} AND ${mysql.escape(endDate)})` : ''}
                 ) as num_tests
                 from test_states t;`);
                     return s;
