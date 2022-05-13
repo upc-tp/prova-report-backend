@@ -1,7 +1,7 @@
 ﻿Type,Title,Description,Priority,Severity,Test Plan Key
-ST,"Modulo de Catalogo",Conjunto de pruebas enfocadas a validar el modulo de catalogo,,TP-01
+ST,"Modulo TEST 2",Conjunto de pruebas enfocadas a validar el modulo de testt 2,,,TP-01
 TC,Listar productos,Listar productos satisfactoriamente,1,1
 TC,Buscar productos,Busca productos satisfactoriamente,2,2
-ST,Modulo de Ventas,"Conjunto, de pruebas enfocadas a validar el modulo de ventas",,,
+ST,Modulo de TEST 22,"Conjunto, de pruebas enfocadas a validar el modulo de testt 2",,,TP-01
 TC,Registrar factura,Registra factura de venta satisfactoriamente,3,3
 TC,Registrar cliente,Registra cliente satisfactoriamente,1,1

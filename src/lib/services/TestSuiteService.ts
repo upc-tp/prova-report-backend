@@ -141,6 +141,7 @@ export class TestSuiteService {
                 const testStateRepo = transactionalEntityManager.getCustomRepository(TestStateRepository);
                 const priorityRepo = transactionalEntityManager.getCustomRepository(PriorityRepository);
                 const severityRepo = transactionalEntityManager.getCustomRepository(SeverityRepository);
+                const testPlanRepo = transactionalEntityManager.getCustomRepository(TestPlanRepository);
 
                 if (isNaN(projectId)) {
                     throw new BusinessError('Debe indicar el ?projectId como query parameter', 400);
@@ -154,15 +155,19 @@ export class TestSuiteService {
                 for (let i = 1; i < lines.length; i++) {
                     const line = lines[i];
                     const entries = StringUtils.csvRowToArray(line, ',', '"');
+                    // console.log("entries: ");
+                    // console.table(entries);
                     const type = entries[0];
                     const title = entries[1].replace('"', ''); // Si tiene el text qualifier "" lo elimina
                     const description = entries[2].replace('"', '');
+                    const testPlanTag = entries[5];
                     if (type === 'ST') {
                         // Guardar suite de prueba
                         data.push({
                             type,
                             title,
                             description,
+                            testPlanTag,
                             testCases: []
                         });
                     } else {
@@ -170,6 +175,7 @@ export class TestSuiteService {
                         const lastSuite = data[data.length - 1];
                         const priorityId = parseInt(entries[3]);
                         const severityId = parseInt(entries[4]);
+                        
                         lastSuite.testCases.push({
                             type,
                             title,
@@ -195,11 +201,24 @@ export class TestSuiteService {
                 let newSuiteIds: number[] = [];
 
                 for (const suite of data) {
+                    const testPlan = await testPlanRepo.findOne({
+                        where: {
+                            tag: suite.testPlanTag,
+                            project: {
+                                id: project.id
+                            }
+                        }
+                    });
+                    if (!testPlan && suite.testPlanTag) {
+                        const notFoundError = new BusinessError(StringUtils.format(ProvaConstants.MESSAGE_RESPONSE_NOT_FOUND, 'Plan de pruebas', suite.testPlanTag), 404);
+                        return Promise.reject(notFoundError);
+                    }
                     let newSuite = new TestSuite();
                     newSuite.title = suite.title;
                     newSuite.description = suite.description;
                     newSuite.project = project;
                     newSuite.testState = state;
+                    newSuite.testPlan = testPlan;
                     newSuite = await testSuiteRepo.save(newSuite);
                     if (suite.testCases.length > 0) {
                         for (const tc of suite.testCases) {
@@ -231,6 +250,7 @@ export class TestSuiteService {
                         id: In(newSuiteIds)
                     },
                     relations: [
+                        "testPlan",
                         "testCases",
                         "testCases.priority",
                         "testCases.severity"
