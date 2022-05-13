@@ -1,3 +1,4 @@
+import mysql = require('mysql');
 import { plainToClass } from "class-transformer";
 import { container, singleton } from "tsyringe";
 import { BusinessError } from "../common/business-error";
@@ -30,19 +31,19 @@ export class TestPlanService {
             const skip = (page - 1) * pageSize;
             const testPlanRepo = conn.getCustomRepository(TestPlanRepository);
             const qb = testPlanRepo.createQueryBuilder("t")
-                .leftJoinAndSelect('t.version','v')
+                .leftJoinAndSelect('t.version', 'v')
                 .innerJoinAndSelect('t.project', 'p')
                 .leftJoin("users_projects", "up", "up.project_id = p.id")
                 .where(`t.deleted_at is null`);
-                
+
             const userClaims = container.resolve(UserClaims);
-            if(userClaims.payload.uid) {
+            if (userClaims.payload.uid) {
                 qb.andWhere(`up.user_id = ${userClaims.payload.uid}`);
             }
             if (search) {
                 qb.andWhere(`concat(t.title,t.description) like '%${search}%'`);
             }
-            if(projectId) {
+            if (projectId) {
                 qb.andWhere(`t.project_id = ${projectId}`);
             }
             qb.orderBy({
@@ -232,14 +233,84 @@ export class TestPlanService {
                 defectsPromise
             ]);
 
+            const totalStoriesPromise = conn.query(`SELECT 
+            COUNT(*) as total_stories 
+            FROM user_stories as us
+            where test_plan_id = ${mysql.escape(testPlan.id)};`);
+
+            const coveredStoriesPromise = conn.query(`
+            SELECT COUNT(*) as covered_stories FROM 
+            (SELECT us.id, us.tag, us.name,
+            COUNT(usc.id) as criterias,
+            COUNT(te.id) as executions
+            FROM user_stories as us
+            left join user_story_criterias as usc
+            on usc.user_story_id = us.id
+            inner join test_cases as tc
+            on tc.id = usc.test_case_id
+            left join test_executions as te
+            on te.test_case_id = tc.id
+            where us.test_plan_id = ${mysql.escape(testPlan.id)}
+            group by us.id, us.tag, us.name) as stories
+            where stories.criterias = stories.executions;`);
+
+            const totalTestsPromise = conn.query(`
+            select COUNT(*) as total_tests from test_cases as tc
+            inner join test_suites as ts
+            on ts.id = tc.test_suite_id
+            where ts.test_plan_id = ${mysql.escape(testPlan.id)};
+            `);
+
+            const assignedTestsPromise = conn.query(`select COUNT(*) as assigned_tests from test_cases as tc
+            inner join test_suites as ts
+            on ts.id = tc.test_suite_id
+            inner join user_story_criterias as usc
+            on usc.test_case_id = tc.id
+            where ts.test_plan_id = ${mysql.escape(testPlan.id)};`);
+
+            const executedTestsPromise = conn.query(`select COUNT(*) as executed_tests from test_cases as tc
+            inner join test_suites as ts
+            on ts.id = tc.test_suite_id
+            inner join test_executions as te
+            on te.test_case_id = tc.id
+            where ts.test_plan_id = ${mysql.escape(testPlan.id)};`);
+
+            const results = await Promise.all([
+                totalStoriesPromise, 
+                coveredStoriesPromise, 
+                totalTestsPromise,
+                assignedTestsPromise,
+                executedTestsPromise
+            ]);
+
+            const total_stories = parseInt(results[0][0].total_stories);
+            const covered_stories = parseInt(results[1][0].covered_stories);
+            const total_tests = parseInt(results[2][0].total_tests);
+            const assigned_tests = parseInt(results[3][0].assigned_tests);
+            const executed_tests = parseInt(results[4][0].executed_tests);
+            const stats = {
+                total_stories,
+                covered_stories,
+                uncovered_stories: total_stories - covered_stories,
+                total_tests,
+                assigned_tests,
+                unassigned_tests: total_tests - assigned_tests,
+                executed_tests,
+                non_executed_tests: total_tests - executed_tests,
+                requirement_coverage: (covered_stories / total_stories * 100).toFixed(1),
+                design_coverage: (assigned_tests / total_tests * 100).toFixed(1),
+                execution_coverage: (executed_tests / total_tests * 100).toFixed(1)
+            };
+
             console.log('generating pdf...');
             const data = {
                 reportDate,
                 testPlan,
                 userStories,
                 testCases,
-                defects
-            }
+                defects,
+                stats
+            };
             const pdf = generatePDF('report', data);
             console.log("pdf generated sucessfully");
             return pdf;

@@ -118,7 +118,7 @@
                     <td>{{defectState.name}}</td>
                 </tr>
                 {{/each}}
-                
+
                 <tr>
                     <td>DT-02</td>
                     <td>Error al registrar categoría</td>
@@ -128,36 +128,88 @@
                 </tr>
             </tbody>
         </table>
-        
+
         <div class="row">
             <h2 id="results">Resultados</h2>
         </div>
         <!--.row-->
         <div class="row">
-            <div class="col-lg-6">
+            <div class="col-12">
                 <h3 id="requirement-coverage">Cobertura de requisitos</h3>
-                <p>Total de requisitos: 2</p>
-                <p>Total de requisitos cubiertos: 1</p>
-                <p>KPI: 50.0%</p>
+                <table class="table">
+                    <thead class="table-primary">
+                        <th>Total de historias</th>
+                        <th>Historias cubiertas</th>
+                        <th>Historias no cubiertas</th>
+                        <th>KPI %</th>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td style="width: 20%;">{{stats.total_stories}}</td>
+                            <td style="width: 20%;">{{stats.covered_stories}}</td>
+                            <td style="width: 20%;">{{stats.uncovered_stories}}</td>
+                            <td style="width: 40%;">{{stats.requirement_coverage}} %</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="col-12">
                 <div id="requirement-coverage-chart"></div>
             </div>
-            <!--.col-->
-            <div class="col-lg-6">
+        </div>
+        <!--.row-->
+        <div class="row">
+            <div class="col-12">
                 <h3 id="test-design-coverage">Cobertura de diseño de las pruebas</h3>
-                <p>Total de pruebas planificadas: 2</p>
-                <p>Total de pruebas asignadas a historias de usuario: 2</p>
-                <p>KPI: 100.0%</p>
+                <table class="table">
+                    <thead class="table-primary">
+                        <th>Total de pruebas planificadas</th>
+                        <th>Pruebas asignadas</th>
+                        <th>Pruebas sin asignar</th>
+                        <th>KPI %</th>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td style="width: 20%;">{{stats.total_tests}}</td>
+                            <td style="width: 20%;">{{stats.assigned_tests}}</td>
+                            <td style="width: 20%;">{{stats.unassigned_tests}}</td>
+                            <td style="width: 40%;">{{stats.design_coverage}} %</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="col-12">
                 <div id="test-design-coverage-chart"></div>
             </div>
             <!--.col-->
         </div>
         <!--.row-->
-
-        <h3 id="test-execution-coverage">Cobertura de ejecución de pruebas</h3>
-        <p>Total de pruebas ejecutadas: 4</p>
-        <p>Total de pruebas planificadas: 5</p>
-        <p>KPI: 80.0%</p>
-        <div id="test-execution-coverage-chart"></div>
+        <br>
+        <div class="row">
+            <div class="col-12">
+                <h3 id="test-execution-coverage">Cobertura de ejecución de pruebas</h3>
+                <table class="table">
+                    <thead class="table-primary">
+                        <th>Total de pruebas planificadas</th>
+                        <th>Pruebas ejecutadas</th>
+                        <th>Pruebas sin ejecutar</th>
+                        <th>KPI %</th>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td style="width: 20%;">{{stats.total_tests}}</td>
+                            <td style="width: 20%;">{{stats.executed_tests}}</td>
+                            <td style="width: 20%;">{{stats.non_executed_tests}}</td>
+                            <td style="width: 40%;">{{stats.execution_coverage}} %</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="col-12">
+                <div id="test-execution-coverage-chart"></div>
+            </div>
+        </div>
+        <!--.row-->
     </div>
     <!--.container-->
 
@@ -183,18 +235,20 @@
 </style>
 <script>
     var options = {
-        series: [50, 50],
-        chart: {
-            id: 'requirement-coverage',
+        series: [{{ stats.covered_stories }}, {{ stats.uncovered_stories }}],
+    chart: {
+        id: 'requirement-coverage',
             width: 380,
-            type: 'pie'
-        },
-        labels: ['Historias cubiertas', 'Historias no cubiertas'],
+                type: 'pie',
+                    animations: false
+    },
+    colors: ['#0000cc', '#bfbfbf'],
+    labels: ['Historias cubiertas', 'Historias no cubiertas'],
         responsive: [{
             breakpoint: 480,
             options: {
                 chart: {
-                    width: 200
+                    width: 380
                 },
                 legend: {
                     position: 'bottom'
@@ -207,18 +261,20 @@
     chart.render();
 
     var options2 = {
-        series: [0, 100],
-        chart: {
-            id: 'test-design-coverage',
+        series: [{{ stats.assigned_tests}}, {{ stats.unassigned_tests }}],
+    chart: {
+        id: 'test-design-coverage',
             width: 380,
-            type: 'pie',
-        },
-        labels: ['Pruebas sin asociar', 'Pruebas asociadas a casos de prueba'],
+                type: 'pie',
+                    animations: false
+    },
+    colors: ['#0000cc', '#bfbfbf'],
+    labels: ['Pruebas asignadas', 'Pruebas sin asignar'],
         responsive: [{
             breakpoint: 480,
             options: {
                 chart: {
-                    width: 200
+                    width: 380
                 },
                 legend: {
                     position: 'bottom'
@@ -231,18 +287,20 @@
     chart.render();
 
     var options3 = {
-        series: [20, 80],
-        chart: {
-            id: 'test-execution-coverage',
+        series: [{{ stats.executed_tests }}, {{ stats.non_executed_tests }}],
+    chart: {
+        id: 'test-execution-coverage',
             width: 380,
-            type: 'pie',
-        },
-        labels: ['Pruebas no ejecutadas', 'Pruebas ejecutadas'],
+                type: 'pie',
+                    animations: false
+    },
+    colors: ['#0000cc', '#bfbfbf'],
+    labels: ['Pruebas ejecutadas', 'Pruebas no ejecutadas'],
         responsive: [{
             breakpoint: 480,
             options: {
                 chart: {
-                    width: 200
+                    width: 380
                 },
                 legend: {
                     position: 'bottom'

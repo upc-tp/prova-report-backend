@@ -207,16 +207,16 @@ export class DashboardService {
 
                 // Llamar a todas las consultas en paralelo
                 const results = await Promise.all([
-                    testsByStatus,
-                    defectsByStatus,
-                    defectsBySeverity,
-                    testsBySeverity,
-                    testsByPriority,
-                    testCoverage,
-                    testDesignCoverage,
-                    defectsFixed,
-                    testExecutionTrendPromise,
-                    userStoryExecutedTestsPromise
+                    testsByStatus, // [0]
+                    defectsByStatus, // [1]
+                    defectsBySeverity, // [2]
+                    testsBySeverity, // [3]
+                    testsByPriority, // [4]
+                    testCoverage, // [5]
+                    testDesignCoverage, // [6]
+                    defectsFixed, // [7]
+                    testExecutionTrendPromise, // [8]
+                    userStoryExecutedTestsPromise // [9]
                 ]);
 
                 let testExecutionTrend = results[8].map(tet => {
