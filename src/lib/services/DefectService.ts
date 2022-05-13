@@ -36,6 +36,7 @@ export class DefectService {
                 .innerJoinAndSelect('d.defectState', 'ds')
                 .innerJoinAndSelect('d.testCase', 'tc')
                 .innerJoinAndSelect('tc.testSuite', 'ts')
+                .leftJoinAndSelect('ts.testPlan', 'tp')
                 .innerJoinAndSelect('d.testExecution', 'te')
                 .leftJoinAndSelect('d.priority', 'p')
                 .leftJoinAndSelect('d.severity', 's')
@@ -84,6 +85,8 @@ export class DefectService {
                     "priority",
                     "severity",
                     "testCase",
+                    "testCase.testSuite",
+                    "testCase.testSuite.testPlan",
                     "testExecution"
                 ],
                 withDeleted: true
