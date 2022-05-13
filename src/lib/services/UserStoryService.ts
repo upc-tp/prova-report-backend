@@ -17,6 +17,7 @@ import { TestCaseRepository } from "../repositories/TestCaseRepository";
 import { UserClaims } from "../interfaces/UserClaims";
 import { In } from "typeorm";
 import { TestPlanRepository } from "../repositories/TestPlanRepository";
+import { TestPlan } from "../models/TestPlan.entity";
 
 @singleton()
 export class UserStoryService {
@@ -147,6 +148,7 @@ export class UserStoryService {
                 const userStoryRepo = transactionalEntityManager.getCustomRepository(UserStoryRepository);
                 const testCaseRepo = transactionalEntityManager.getCustomRepository(TestCaseRepository);
                 const userCriteriasRepo = transactionalEntityManager.getRepository(UserStoryCriteria);
+                const testPlanRepo = transactionalEntityManager.getRepository(TestPlan);
 
                 if (isNaN(projectId)) {
                     throw new BusinessError('Debe indicar el ?projectId como query parameter', 400);
@@ -164,12 +166,14 @@ export class UserStoryService {
                     const type = entries[0];
                     const name = entries[1].replace('"', ''); // Si tiene el text qualifier "" lo elimina
                     const description = entries[2].replace('"', '');
+                    const testPlanTag = entries[4];
                     if (type === 'US') {
                         // Guardar suite de prueba
                         data.push({
                             type,
                             name,
                             description,
+                            testPlanTag,
                             criterias: []
                         });
                     } else {
@@ -193,10 +197,23 @@ export class UserStoryService {
                 let newStoryIds: number[] = [];
 
                 for (const story of data) {
+                    const testPlan = await testPlanRepo.findOne({
+                        where: {
+                            tag: story.testPlanTag,
+                            project: {
+                                id: project.id
+                            }
+                        }
+                    });
+                    if (!testPlan && story.testPlanTag) {
+                        const notFoundError = new BusinessError(StringUtils.format(ProvaConstants.MESSAGE_RESPONSE_NOT_FOUND, 'Plan de pruebas', story.testPlanTag), 404);
+                        return Promise.reject(notFoundError);
+                    }
                     let newStory = new UserStory();
                     newStory.name = story.name;
                     newStory.description = story.description;
                     newStory.project = project;
+                    newStory.testPlan = testPlan;
                     newStory = await userStoryRepo.save(newStory);
                     if (story.criterias.length > 0) {
                         for (const cri of story.criterias) {
@@ -232,6 +249,7 @@ export class UserStoryService {
                         id: In(newStoryIds)
                     },
                     relations: [
+                        "testPlan",
                         "userStoryCriterias",
                         "userStoryCriterias.testCase"
                     ]
