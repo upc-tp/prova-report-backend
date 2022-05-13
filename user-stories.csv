@@ -1,7 +1,7 @@
-﻿Type,Name,Description,Test Case Key
-US,Gestion de Productos,COMO usuario QUIERO gestionar los productos PARA poder actualizar el catalogo de la aplicacion,
-AC,,DADO que un usuario se encuentra autenticado en la aplicacion CUANDO ingrese a la vista de Productos ENTONCES se mostraran los productos registrados,TC-08
-AC,,DADO … CUANDO … ENTONCES …,TC-09
-US,Gestion de Usuarios,COMO usuario QUIERO tener acceso a la aplicacion PARA poder utilizar sus funciones,
-AC,,DADO que un usuario se encuentra en la pantalla de login CUANDO haga clic en Iniciar Sesion ENTONCES se redireccionara al menu principal de la aplicacion,TC-02
-AC,,DADO que un usuario se encuentra en la pantalla de registro CUANDO haga clic en Iregistrarse ENTONCES se redireccionara al menu principal de la aplicacion,TC-01
+﻿Type,Name,Description,Test Case Key,Test Plan Key
+US,Gestion de Productos,COMO usuario QUIERO gestionar los productos PARA poder actualizar el catalogo de la aplicacion,,TP-01
+AC,,DADO que un usuario se encuentra autenticado en la aplicacion CUANDO ingrese a la vista de Productos ENTONCES se mostraran los productos registrados,,
+AC,,DADO … CUANDO … ENTONCES …,,
+US,Gestion de Usuarios,COMO usuario QUIERO tener acceso a la aplicacion PARA poder utilizar sus funciones,,TP-01
+AC,,DADO que un usuario se encuentra en la pantalla de login CUANDO haga clic en Iniciar Sesion ENTONCES se redireccionara al menu principal de la aplicacion,TC-02,
+AC,,DADO que un usuario se encuentra en la pantalla de registro CUANDO haga clic en Iregistrarse ENTONCES se redireccionara al menu principal de la aplicacion,TC-01,

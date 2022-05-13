@@ -20,6 +20,12 @@ export class TestPlan extends AuditEntity {
     })
     project: Project;
 
+    @Column({
+        type: 'varchar',
+        length: 16
+    })
+    tag: string;
+
     @ManyToOne(type => Version)
     @JoinColumn({
         name: 'version_id',
