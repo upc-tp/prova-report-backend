@@ -245,12 +245,11 @@ export class DefectService {
         }
     }
 
-    async getPdf(projectId: number, testSuiteId: number, reportDate: string): Promise<Defect[]> {
+    async getPdf(projectId: number, testPlanId: number = null, reportDate: string): Promise<Defect[]> {
         try {
             const conn = await this._database.getConnection();
             const defectRepo = conn.getCustomRepository(DefectRepository);
             const projectRepo = conn.getCustomRepository(ProjectRepository);
-            const suiteRepo = conn.getCustomRepository(TestSuiteRepository);
             const qb = defectRepo.createQueryBuilder("d")
                 .innerJoinAndSelect('d.defectState', 'ds')
                 .innerJoinAndSelect('d.testCase', 'tc')
@@ -266,18 +265,12 @@ export class DefectService {
                 return Promise.reject(notFoundError);
             }
 
-            const suite = await projectRepo.findOne(testSuiteId);
-            if (!suite) {
-                const notFoundError = new BusinessError(StringUtils.format(ProvaConstants.MESSAGE_RESPONSE_NOT_FOUND, 'Project', testSuiteId.toString()), 404);
-                return Promise.reject(notFoundError);
-            }
-
             if (projectId) {
                 qb.andWhere(`ts.project_id = ${projectId}`);
             }
 
-            if (projectId) {
-                qb.andWhere(`ts.id = ${testSuiteId}`);
+            if (testPlanId) {
+                qb.andWhere(`ts.test_plan_id = ${testPlanId}`);
             }
 
             const defects = await qb.getMany();
@@ -285,7 +278,6 @@ export class DefectService {
             const data = {
                 reportDate,
                 project,
-                suite,
                 defects
             }
             console.log('La data es: ', data);

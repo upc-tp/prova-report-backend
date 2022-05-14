@@ -108,14 +108,14 @@ router.put('/:id', authorize(['Admin']), async (req: Request, res: Response, nex
     }
 });
 
-router.get('/:projectId/:testSuiteId/pdf', async (req: Request, res: Response, next: NextFunction) => {
+router.get('/:projectId/pdf', async (req: Request, res: Response, next: NextFunction) => {
     try {
         const projectId = +req.params.projectId;
-        const testSuiteId = +req.params.testSuiteId;
+        const testPlanId = +req.params.testPlanId;
         const reportDate = DateUtils.formatToDayMonthAndYear(new Date());
-        const result = await _defectService.getPdf(projectId, testSuiteId, reportDate);
+        const result = await _defectService.getPdf(projectId, testPlanId, reportDate);
         if (!result) {
-            throw new BusinessError(StringUtils.format(ProvaConstants.MESSAGE_RESPONSE_NOT_FOUND, 'Defectos del proyecto y test suite', projectId.toString(), testSuiteId.toString()), 404);
+            throw new BusinessError(StringUtils.format(ProvaConstants.MESSAGE_RESPONSE_NOT_FOUND, 'Defectos del proyecto y test suite', projectId.toString(), testPlanId.toString()), 404);
         }
         res.setHeader('Content-Type', 'application/pdf');
         res.setHeader('Content-Disposition', `attachment; filename=plan-de-pruebas-${reportDate}.pdf`);
