@@ -27,7 +27,7 @@ export class UserStoryService {
         this._database = container.resolve(DatabaseManager);
     }
 
-    async getPaged(page: number, pageSize: number, sortOrder: string = ProvaConstants.SORT_ORDER_DESC, projectId: number = null): Promise<[UserStory[], number]> {
+    async getPaged(page: number, pageSize: number, sortOrder: string = ProvaConstants.SORT_ORDER_DESC,  search: string, projectId: number = null, testPlanId: number = null): Promise<[UserStory[], number]> {
         try {
             const conn = await this._database.getConnection();
             const skip = (page - 1) * pageSize;
@@ -44,6 +44,12 @@ export class UserStoryService {
             }
             if (projectId) {
                 qb.andWhere(`us.project_id = ${projectId}`);
+            }
+            if (testPlanId){
+                qb.andWhere(`tp.id = ${testPlanId}`)
+            }
+            if (search) {
+                qb.andWhere(`concat(us.name, us.description) like '%${search}%'`);
             }
             qb.orderBy({
                 "us.id": sortOrder as any
