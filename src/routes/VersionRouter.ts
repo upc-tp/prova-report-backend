@@ -49,7 +49,7 @@ router.get('/:id', async (req:Request, res: Response, next: NextFunction) => {
     }
 });
 
-router.post('/', authorize(['Admin']), async (req:Request, res: Response, next: NextFunction) => {
+router.post('/', async (req:Request, res: Response, next: NextFunction) => {
    try {
        const dto: VersionSaveDTO = plainToClass(VersionSaveDTO, req.body);
        const errors = await validate(dto);
@@ -65,7 +65,7 @@ router.post('/', authorize(['Admin']), async (req:Request, res: Response, next: 
    }
 });
 
-router.put('/:id', authorize(['Admin']), async (req: Request,res: Response, next: NextFunction) => {
+router.put('/:id', async (req: Request,res: Response, next: NextFunction) => {
     try {
         const id = +req.params.id;
         const dto: VersionUpdateDTO = plainToClass(VersionUpdateDTO, req.body);

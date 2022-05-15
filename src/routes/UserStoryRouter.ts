@@ -55,7 +55,7 @@ router.get('/:id', async (req: Request, res: Response, next: NextFunction) => {
     }
 });
 
-router.post('/', authorize(['Admin']), async (req: Request, res: Response, next: NextFunction) => {
+router.post('/', async (req: Request, res: Response, next: NextFunction) => {
     try {
         const dto: UserStorySaveDTO = plainToClass(UserStorySaveDTO, req.body);
         const errors = await validate(dto);
@@ -71,7 +71,7 @@ router.post('/', authorize(['Admin']), async (req: Request, res: Response, next:
     }
 });
 
-router.post('/import', authorize(['Admin', 'Tester']), async (req: Request, res: Response, next: NextFunction) => {
+router.post('/import', async (req: Request, res: Response, next: NextFunction) => {
     try {
         const projectId = +req.query.projectId;
         const buffer = req.body;
@@ -85,7 +85,7 @@ router.post('/import', authorize(['Admin', 'Tester']), async (req: Request, res:
     }
 });
 
-router.put('/:id', authorize(['Admin']), async (req: Request, res: Response, next: NextFunction) => {
+router.put('/:id', async (req: Request, res: Response, next: NextFunction) => {
     try {
         const id = +req.params.id;
         const dto: UserStoryUpdateDTO = plainToClass(UserStoryUpdateDTO, req.body);
@@ -102,7 +102,7 @@ router.put('/:id', authorize(['Admin']), async (req: Request, res: Response, nex
     }
 });
 
-router.put('/criteria/:id', authorize(['Admin']), async (req: Request, res: Response, next: NextFunction) => {
+router.put('/criteria/:id', async (req: Request, res: Response, next: NextFunction) => {
     try {
         const id = +req.params.id;
         const dto: UserStoryCriteriaUpdateDTO = plainToClass(UserStoryCriteriaUpdateDTO, req.body);

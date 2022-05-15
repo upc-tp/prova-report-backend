@@ -99,7 +99,7 @@ router.get('/:id/last-execution', async (req: Request, res: Response, next: Next
     }
 });
 
-router.post('/', authorize(['Admin']), async (req: Request, res: Response, next: NextFunction) => {
+router.post('/', async (req: Request, res: Response, next: NextFunction) => {
     try {
         const dto: TestCaseSaveDTO = plainToClass(TestCaseSaveDTO, req.body);
         const errors = await validate(dto);
@@ -115,7 +115,7 @@ router.post('/', authorize(['Admin']), async (req: Request, res: Response, next:
     }
 });
 
-router.post('/:id/test-executions', authorize(['Admin', 'Tester']), async (req: Request, res: Response, next: NextFunction) => {
+router.post('/:id/test-executions', async (req: Request, res: Response, next: NextFunction) => {
     try {
         const id = +req.params.id;
         const comments = req.query.comments as string;
@@ -130,7 +130,7 @@ router.post('/:id/test-executions', authorize(['Admin', 'Tester']), async (req: 
     }
 });
 
-router.put('/:id', authorize(['Admin']), async (req: Request, res: Response, next: NextFunction) => {
+router.put('/:id', async (req: Request, res: Response, next: NextFunction) => {
     try {
         const id = +req.params.id;
         const dto: TestCaseUpdateDTO = plainToClass(TestCaseUpdateDTO, req.body);

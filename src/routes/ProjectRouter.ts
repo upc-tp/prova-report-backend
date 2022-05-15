@@ -86,7 +86,7 @@ router.get('/:id/no-collaborators', async (req: Request, res: Response, next: Ne
     }
 });
 
-router.post('/', authorize(['Admin']), async (req: Request, res: Response, next: NextFunction) => {
+router.post('/', async (req: Request, res: Response, next: NextFunction) => {
     try {
         const dto: ProjectSaveDTO = plainToClass(ProjectSaveDTO, req.body);
         const errors = await validate(dto);
@@ -102,7 +102,7 @@ router.post('/', authorize(['Admin']), async (req: Request, res: Response, next:
     }
 });
 
-router.post('/:id/collaborators', authorize(['Admin']), async (req: Request, res: Response, next: NextFunction) => {
+router.post('/:id/collaborators', async (req: Request, res: Response, next: NextFunction) => {
     try {
         const id = +req.params.id;
         const dto: RegisterDTO = plainToClass(RegisterDTO, req.body);
@@ -120,7 +120,7 @@ router.post('/:id/collaborators', authorize(['Admin']), async (req: Request, res
 });
 
 
-router.post('/:id/collaborators/:userId', authorize(['Admin']), async (req: Request, res: Response, next: NextFunction) => {
+router.post('/:id/collaborators/:userId', async (req: Request, res: Response, next: NextFunction) => {
     try {
         const id = +req.params.id;
         const userId = +req.params.userId;
@@ -133,7 +133,7 @@ router.post('/:id/collaborators/:userId', authorize(['Admin']), async (req: Requ
     }
 });
 
-router.put('/:id', authorize(['Admin']), async (req: Request, res: Response, next: NextFunction) => {
+router.put('/:id', async (req: Request, res: Response, next: NextFunction) => {
     try {
         const id = +req.params.id;
         const dto: ProjectSaveDTO = plainToClass(ProjectSaveDTO, req.body);
