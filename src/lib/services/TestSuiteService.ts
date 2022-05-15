@@ -26,7 +26,7 @@ export class TestSuiteService {
         this._database = container.resolve(DatabaseManager);
     }
 
-    async getPaged(page: number, pageSize: number, sortOrder: string = ProvaConstants.SORT_ORDER_DESC, search: string, projectId: number = null): Promise<[TestSuite[], number]> {
+    async getPaged(page: number, pageSize: number, sortOrder: string = ProvaConstants.SORT_ORDER_DESC, search: string, projectId: number = null, testPlanId: number = null): Promise<[TestSuite[], number]> {
         try {
             const conn = await this._database.getConnection();
             const skip = (page - 1) * pageSize;
@@ -47,6 +47,9 @@ export class TestSuiteService {
             }
             if (projectId) {
                 qb.andWhere(`t.project_id = ${projectId}`);
+            }
+            if (testPlanId) {
+                qb.andWhere(`tp.id= ${testPlanId}`);
             }
             qb.orderBy({
                 "t.id": sortOrder as any
