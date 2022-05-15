@@ -51,6 +51,8 @@ export class ProvaConstants {
     public static readonly DEFECT_STATE_NEW = 1;
     public static readonly DEFECT_STATE_ACCEPTED = 2;
     public static readonly DEFECT_STATE_REJECTED = 3;
+    public static readonly DEFECT_STATE_FIXED = 4;
+    public static readonly DEFECT_STATE_UNDER_REVIEW = 5;
 
     public static readonly USER_ROLE_ADMIN = "Admin";
     public static readonly USER_ROLE_TESTER= "Tester";

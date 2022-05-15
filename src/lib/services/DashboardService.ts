@@ -174,8 +174,9 @@ export class DashboardService {
                 const testDesignCoverage = transactionalEntityManager.query(testDesignCoverageQuery);
 
                 const acceptedDefectId = ProvaConstants.DEFECT_STATE_ACCEPTED;
+                const fixedId = ProvaConstants.DEFECT_STATE_FIXED;
                 const defectsFixedQuery = `SELECT 
-                IFNULL(SUM(IF(d.is_fixed = 1, 1, 0)), 0) as fixed_defects, 
+                IFNULL(SUM(IF(d.defect_state_id = ${mysql.escape(fixedId)}, 1, 0)), 0) as fixed_defects, 
                 COUNT(d.id) as accepted_defects 
                 FROM defects d
                 INNER JOIN test_cases tc
@@ -184,8 +185,7 @@ export class DashboardService {
                 ON tst.id = tc.test_suite_id
                 WHERE tst.project_id = ${mysql.escape(projectId)}
                 ${testPlanId > 0 ? 'AND tst.test_plan_id=' + mysql.escape(testPlanId) : ''}
-                ${startDate && endDate ? `AND (DATE(d.created_at) BETWEEN ${mysql.escape(startDate)} AND ${mysql.escape(endDate)})` : ''}
-                and d.defect_state_id = ${mysql.escape(acceptedDefectId)};`;
+                ${startDate && endDate ? `AND (DATE(d.created_at) BETWEEN ${mysql.escape(startDate)} AND ${mysql.escape(endDate)})` : ''};`;
 
                 const defectsFixed = transactionalEntityManager.query(defectsFixedQuery);
 

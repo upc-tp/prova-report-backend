@@ -2,7 +2,7 @@ import * as express from 'express';
 import { Request, Response, NextFunction } from "express";
 import { container } from 'tsyringe';
 import { ProvaConstants } from '../lib/common/constants';
-import { ResultResponse, SingleResponse } from '../lib/common/responses';
+import { SingleResponse } from '../lib/common/responses';
 import { StringUtils } from '../lib/common/StringUtils';
 import { DashboardService } from '../lib/services/DashboardService';
 
