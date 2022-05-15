@@ -48,7 +48,14 @@ export async function generatePDF(fileName: string, data: any) {
 
     const pdf = await page.pdf({
         format: "A4",
-        printBackground: true
+        printBackground: true,
+        displayHeaderFooter: true,
+        footerTemplate: `
+        <div style="border-top: solid 1px #bbb; width: 100%; font-size: 9px;
+            padding: 5px 5px 0; color: #bbb; position: relative;">
+            <div style="position: absolute; right: 5px; top: 5px;">Página&nbsp;<span class="pageNumber"></span>&nbsp;de&nbsp;<span class="totalPages"></span></div>
+        </div>`,
+        margin: { left: "1cm", right: "1cm", bottom: '1cm' }
     });
 
     await context.close();

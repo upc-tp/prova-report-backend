@@ -17,6 +17,7 @@ import { TestCaseRepository } from "../repositories/TestCaseRepository";
 import { TestPlanRepository } from "../repositories/TestPlanRepository";
 import { TestStateRepository } from "../repositories/TestStateRepository";
 import { TestSuiteRepository } from "../repositories/TestSuiteRepository";
+import { UserRepository } from "../repositories/UserRepository";
 
 @singleton()
 export class TestSuiteService {
@@ -145,6 +146,7 @@ export class TestSuiteService {
                 const priorityRepo = transactionalEntityManager.getCustomRepository(PriorityRepository);
                 const severityRepo = transactionalEntityManager.getCustomRepository(SeverityRepository);
                 const testPlanRepo = transactionalEntityManager.getCustomRepository(TestPlanRepository);
+                const userRepo = transactionalEntityManager.getCustomRepository(UserRepository);
 
                 if (isNaN(projectId)) {
                     throw new BusinessError('Debe indicar el ?projectId como query parameter', 400);
@@ -178,13 +180,15 @@ export class TestSuiteService {
                         const lastSuite = data[data.length - 1];
                         const priorityId = parseInt(entries[3]);
                         const severityId = parseInt(entries[4]);
-                        
+                        const email = entries[6];
+
                         lastSuite.testCases.push({
                             type,
                             title,
                             description,
                             priorityId,
-                            severityId
+                            severityId,
+                            email
                         });
                     }
                 }
@@ -235,6 +239,17 @@ export class TestSuiteService {
                                 const notFoundError = new BusinessError(StringUtils.format(ProvaConstants.MESSAGE_RESPONSE_NOT_FOUND, 'Severity', tc.severityId.toString()), 404);
                                 return Promise.reject(notFoundError);
                             }
+                            const user = await userRepo.createQueryBuilder("u")
+                                .leftJoinAndSelect("u.userProjects", "up")
+                                .where("up.project_id = :projectId and u.email = :email", {
+                                    projectId: project.id,
+                                    email: tc.email
+                                })
+                                .getOne();
+                            if (!user && tc.email) {
+                                const notFoundError = new BusinessError(StringUtils.format(ProvaConstants.MESSAGE_RESPONSE_NOT_FOUND, 'Usuario', tc.email), 404);
+                                return Promise.reject(notFoundError);
+                            }
                             let newTest = new TestCase();
                             newTest.title = tc.title;
                             newTest.description = tc.description;
@@ -242,6 +257,7 @@ export class TestSuiteService {
                             newTest.testSuite = newSuite;
                             newTest.priority = priority;
                             newTest.severity = severity;
+                            newTest.userInCharge = user;
                             await testCaseRepo.save(newTest);
                         }
                     }
@@ -256,7 +272,8 @@ export class TestSuiteService {
                         "testPlan",
                         "testCases",
                         "testCases.priority",
-                        "testCases.severity"
+                        "testCases.severity",
+                        "testCases.userInCharge"
                     ]
                 });
 
