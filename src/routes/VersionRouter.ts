@@ -41,7 +41,7 @@ router.get('/:id', async (req:Request, res: Response, next: NextFunction) => {
         if(!result) {
             throw new BusinessError(StringUtils.format(ProvaConstants.MESSAGE_RESPONSE_NOT_FOUND, 'Version', id.toString()), 404);
         }
-        const message = StringUtils.format(ProvaConstants.MESSAGE_RESPONSE_GET_SUCCESS, 'Spring');
+        const message = StringUtils.format(ProvaConstants.MESSAGE_RESPONSE_GET_SUCCESS, 'Version');
         const response = SingleResponse(message, true, result);
         res.status(200).send(response);
     }catch (error){
