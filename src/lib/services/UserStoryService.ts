@@ -18,6 +18,7 @@ import { UserClaims } from "../interfaces/UserClaims";
 import { In } from "typeorm";
 import { TestPlanRepository } from "../repositories/TestPlanRepository";
 import { TestPlan } from "../models/TestPlan.entity";
+import { Project } from "../models/Project.entity";
 
 @singleton()
 export class UserStoryService {
@@ -276,6 +277,7 @@ export class UserStoryService {
             return await conn.transaction(async transactionalEntityManager => {
                 const userStoryRepo = transactionalEntityManager.getCustomRepository(UserStoryRepository);
                 const userStoryCriteriaRepo = transactionalEntityManager.getRepository(UserStoryCriteria);
+                const projectRepo = transactionalEntityManager.getRepository(Project);
                 const testCaseRepo = transactionalEntityManager.getCustomRepository(TestCaseRepository);
                 const testPlanRepo = transactionalEntityManager.getCustomRepository(TestPlanRepository);
                 const entity = await userStoryRepo.findOne({ id }, {
@@ -303,6 +305,13 @@ export class UserStoryService {
                 } else {
                     entity.testPlan = null;
                 }
+
+                const project = await projectRepo.findOne(dto.projectId);
+                if (!project) {
+                    const notFoundError = new BusinessError(StringUtils.format(ProvaConstants.MESSAGE_RESPONSE_NOT_FOUND, 'Project', dto.projectId.toString()), 404);
+                    return Promise.reject(notFoundError);
+                }
+                entity.project = project;
 
                 const removedDetails = entity.userStoryCriterias.filter(det => !dto.userStoryCriterias.some(d => d.id === det.id));
                 await userStoryCriteriaRepo.remove(removedDetails);
