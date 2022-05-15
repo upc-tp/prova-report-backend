@@ -163,8 +163,8 @@ export class TestSuiteService {
                     // console.log("entries: ");
                     // console.table(entries);
                     const type = entries[0];
-                    const title = entries[1].replace('"', ''); // Si tiene el text qualifier "" lo elimina
-                    const description = entries[2].replace('"', '');
+                    const title = entries[1]; // Si tiene el text qualifier "" lo elimina
+                    const description = entries[2];
                     const testPlanTag = entries[5];
                     if (type === 'ST') {
                         // Guardar suite de prueba
