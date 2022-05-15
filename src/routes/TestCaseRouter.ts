@@ -28,8 +28,12 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
         let testSuiteId = +req.query.testSuiteId;
         let projectId = +req.query.projectId;
         let isAssigned = +req.query.isAssigned;
+        let testStateId = null;
+        if (req.query.testStateId) {
+            testStateId = req.query.testStateId.toString().split(',').map(x => +x);
+        }
         const { sortOrder, search } = req.query;
-        const [result, count] = await _testCaseService.getPaged(page, pageSize, sortOrder as string, search as string, testSuiteId, projectId, isAssigned);
+        const [result, count] = await _testCaseService.getPaged(page, pageSize, sortOrder as string, search as string, testSuiteId, projectId, isAssigned, testStateId);
         if (!page || !pageSize) {
             page = 1;
             pageSize = count;

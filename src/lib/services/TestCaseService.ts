@@ -26,7 +26,8 @@ export class TestCaseService {
         this._database = container.resolve(DatabaseManager);
     }
 
-    async getPaged(page: number, pageSize: number, sortOrder: string = ProvaConstants.SORT_ORDER_DESC, search: string, testSuiteId: number = null, projectId: number = null, isAssigned: number = null): Promise<[TestCase[], number]> {
+    async getPaged(page: number, pageSize: number, sortOrder: string = ProvaConstants.SORT_ORDER_DESC, search: string, testSuiteId: number = null, projectId: number = null, isAssigned: number = null,
+        testStateId: number[] = null): Promise<[TestCase[], number]> {
         try {
             const conn = await this._database.getConnection();
             const skip = (page - 1) * pageSize;
@@ -34,6 +35,7 @@ export class TestCaseService {
             const qb = testCaseRepo.createQueryBuilder("t")
                 .innerJoinAndSelect('t.testState', 'ts')
                 .innerJoinAndSelect('t.testSuite', 'tst')
+                .innerJoinAndSelect('t.testState', 'st')
                 .leftJoin("projects", "pj", "pj.id = tst.project_id")
                 .leftJoin("users_projects", "up", "up.project_id = pj.id")
                 .leftJoinAndSelect('t.priority', 'p')
@@ -63,6 +65,10 @@ export class TestCaseService {
                 qb.andWhere(`uc.test_case_id is not null`);
             } else if (isAssigned === 0) {
                 qb.andWhere(`uc.test_case_id is null`);
+            }
+
+            if (testStateId) {
+                qb.andWhere(`st.id in (${testStateId.join()})`);
             }
 
             qb.orderBy({
