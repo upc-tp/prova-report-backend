@@ -240,12 +240,12 @@ export class DashboardService {
                     categories,
                     series: [
                         {
-                            name: 'Casos de prueba ejecutados',
-                            data: coveredSerie
+                            name: 'Pruebas no ejecutadas',
+                            data: uncoveredSerie
                         },
                         {
-                            name: 'Casos de prueba no ejecutados',
-                            data: uncoveredSerie
+                            name: 'Pruebas ejecutadas',
+                            data: coveredSerie
                         }
                     ],
                     details: userStoryExecutedTests
