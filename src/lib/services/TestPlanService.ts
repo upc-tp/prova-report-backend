@@ -96,6 +96,14 @@ export class TestPlanService {
                     return Promise.reject(notFoundError);
                 }
                 entity.project = project;
+
+                const alreadyExists = await testPlanRepo.createQueryBuilder("tp")
+                    .where("tp.title = :title and tp.project_id = :projectId", { title: dto.title, projectId: project.id })
+                    .getCount() > 0;
+                if (alreadyExists) {
+                    throw new BusinessError(`El plan de prueba con título "${dto.title}" ya se encuentra registrado en el proyecto`, 400);
+                }
+
                 if (dto.versionId > 0) {
                     const version = await versionRepo.findOne(dto.versionId);
                     if (!version) {
@@ -138,6 +146,16 @@ export class TestPlanService {
                     return Promise.reject(notFoundError);
                 }
                 entity.project = project;
+
+                if (entity.title !== dto.title) {
+                    const alreadyExists = await testPlanRepo.createQueryBuilder("tp")
+                        .where("tp.title = :title and tp.project_id = :projectId", { title: dto.title, projectId: project.id })
+                        .getCount() > 0;
+                    if (alreadyExists) {
+                        throw new BusinessError(`El plan de prueba con título "${dto.title}" ya se encuentra registrado en el proyecto`, 400);
+                    }
+                }
+
                 if (dto.versionId > 0) {
                     const version = await versionRepo.findOne(dto.versionId);
                     if (!version) {
@@ -276,8 +294,8 @@ export class TestPlanService {
             where ts.test_plan_id = ${mysql.escape(testPlan.id)};`);
 
             const results = await Promise.all([
-                totalStoriesPromise, 
-                coveredStoriesPromise, 
+                totalStoriesPromise,
+                coveredStoriesPromise,
                 totalTestsPromise,
                 assignedTestsPromise,
                 executedTestsPromise

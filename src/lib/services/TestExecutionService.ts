@@ -128,7 +128,7 @@ export class TestExecutionService {
                 });
 
                 if (!testElement) {
-                    throw new BusinessError(`No se ha encontrado el resultado para el caso de prueba: ${testCase.tag}\nPor favor coloque la etiqueta en el archivo .xml`, 400);
+                    throw new BusinessError(`No se ha encontrado el resultado para el caso de prueba: ${testCase.tag}\nColoque la etiqueta ${testCase.tag} en el archivo .xml`, 400);
                 }
 
                 const statusElement = testElement.find('status');

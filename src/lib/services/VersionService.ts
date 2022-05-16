@@ -1,15 +1,15 @@
-import {container, singleton} from "tsyringe";
-import {DatabaseManager} from "../database/DatabaseManager";
-import {ProvaConstants} from "../common/constants";
-import {Version} from "../models/Version.entity";
-import {VersionsRepository} from "../repositories/VersionsRepository";
-import {UserClaims} from "../interfaces/UserClaims";
-import {VersionSaveDTO} from "../dtos/version/VersionSaveDTO";
-import {plainToClass} from "class-transformer";
-import {ProjectRepository} from "../repositories/ProjectRepository";
-import {BusinessError} from "../common/business-error";
-import {StringUtils} from "../common/StringUtils";
-import {VersionUpdateDTO} from "../dtos/version/VersionUpdateDTO";
+import { container, singleton } from "tsyringe";
+import { DatabaseManager } from "../database/DatabaseManager";
+import { ProvaConstants } from "../common/constants";
+import { Version } from "../models/Version.entity";
+import { VersionsRepository } from "../repositories/VersionsRepository";
+import { UserClaims } from "../interfaces/UserClaims";
+import { VersionSaveDTO } from "../dtos/version/VersionSaveDTO";
+import { plainToClass } from "class-transformer";
+import { ProjectRepository } from "../repositories/ProjectRepository";
+import { BusinessError } from "../common/business-error";
+import { StringUtils } from "../common/StringUtils";
+import { VersionUpdateDTO } from "../dtos/version/VersionUpdateDTO";
 
 @singleton()
 export class VersionService {
@@ -26,17 +26,17 @@ export class VersionService {
             const versionRepo = conn.getCustomRepository(VersionsRepository);
             const qb = versionRepo.createQueryBuilder("s")
                 .innerJoinAndSelect('s.project', 'p')
-                .leftJoin("users_projects", "up","up.project_id = p.id")
+                .leftJoin("users_projects", "up", "up.project_id = p.id")
                 .where(`s.deletedAt is null`);
 
             const userClaims = container.resolve(UserClaims);
-            if(userClaims.payload.uid){
+            if (userClaims.payload.uid) {
                 qb.andWhere(`up.user_id = ${userClaims.payload.uid}`);
             }
             if (search) {
                 qb.andWhere(`concat(s.title,s.description) like '%${search}%'`);
             }
-            if(projectId) {
+            if (projectId) {
                 qb.andWhere(`s.project_id = ${projectId}`);
             }
             qb.orderBy({
@@ -47,7 +47,7 @@ export class VersionService {
                 qb.take(pageSize);
             }
             const result = await qb.getManyAndCount();
-            return  result;
+            return result;
         } catch (error) {
             console.error(error);
             return Promise.reject(error);
@@ -59,26 +59,32 @@ export class VersionService {
             const conn = await this._database.getConnection();
             const entity = plainToClass(Version, dto);
             return await conn.transaction(async transactionalEntityManager => {
-               const projectRepo = transactionalEntityManager.getCustomRepository(ProjectRepository);
-               const versionRepo = transactionalEntityManager.getCustomRepository(VersionsRepository);
-               const project = await projectRepo.findOne(dto.projectId);
-               if(!project) {
-                   const notFoundError = new BusinessError(StringUtils.format(ProvaConstants.MESSAGE_RESPONSE_NOT_FOUND, 'Projects', dto.projectId.toString()), 404);
-                   return Promise.reject(notFoundError);
-               }
-               entity.project = project;
-               const order = ++project.lastVersion;
-               entity.order = order;
-               console.log("Creating new version: ");
-               console.log(entity);
-               const version = await versionRepo.save(entity);
-               console.log("Version saved successfully");
-               console.log("Updating last version of project: ", project.title);
-               await projectRepo.update(project.id, {
-                   lastVersion: order
-               });
-               console.log("Project updated successfully");
-               return version;
+                const projectRepo = transactionalEntityManager.getCustomRepository(ProjectRepository);
+                const versionRepo = transactionalEntityManager.getCustomRepository(VersionsRepository);
+                const project = await projectRepo.findOne(dto.projectId);
+                if (!project) {
+                    const notFoundError = new BusinessError(StringUtils.format(ProvaConstants.MESSAGE_RESPONSE_NOT_FOUND, 'Projects', dto.projectId.toString()), 404);
+                    return Promise.reject(notFoundError);
+                }
+                entity.project = project;
+                const alreadyExists = await versionRepo.createQueryBuilder("v")
+                    .where("v.title = :title and v.project_id = :projectId", { title: dto.title, projectId: project.id })
+                    .getCount() > 0;
+                if (alreadyExists) {
+                    throw new BusinessError(`La versión con título "${dto.title}" ya se encuentra registrada en el proyecto`, 400);
+                }
+                const order = ++project.lastVersion;
+                entity.order = order;
+                console.log("Creating new version: ");
+                console.log(entity);
+                const version = await versionRepo.save(entity);
+                console.log("Version saved successfully");
+                console.log("Updating last version of project: ", project.title);
+                await projectRepo.update(project.id, {
+                    lastVersion: order
+                });
+                console.log("Project updated successfully");
+                return version;
             }).catch(error => {
                 return Promise.reject(error);
             });
@@ -88,7 +94,7 @@ export class VersionService {
         }
     }
 
-    async update(id: number, dto: VersionUpdateDTO): Promise<Version>{
+    async update(id: number, dto: VersionUpdateDTO): Promise<Version> {
         try {
             const conn = await this._database.getConnection();
             return await conn.transaction(async transactionalEntityManager => {
@@ -107,27 +113,27 @@ export class VersionService {
             }).catch(error => {
                 return Promise.reject(error);
             });
-        } catch (error){
+        } catch (error) {
             console.log(error);
             return Promise.reject(error);
         }
     }
 
-    async getById(id: number): Promise<Version>{
+    async getById(id: number): Promise<Version> {
         try {
             const conn = await this._database.getConnection();
             const versionRepo = conn.getCustomRepository(VersionsRepository);
-            const version = await versionRepo.findOne({id},{
-               where: {
-                   deletedAt: null,
-               },
+            const version = await versionRepo.findOne({ id }, {
+                where: {
+                    deletedAt: null,
+                },
                 relations: [
                     "project"
                 ],
                 withDeleted: true
             });
             return version;
-        }catch (error){
+        } catch (error) {
             console.log(error);
             return Promise.reject(error);
         }

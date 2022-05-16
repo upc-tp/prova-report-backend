@@ -38,7 +38,7 @@ export class ProjectService {
             if (search) {
                 qb.andWhere(`concat(p.title,p.description) like '%${search}%'`);
             }
-            if(userClaims.payload.uid) {
+            if (userClaims.payload.uid) {
                 qb.andWhere(`up.user_id = ${userClaims.payload.uid}`);
             }
 
@@ -68,7 +68,7 @@ export class ProjectService {
             if (search) {
                 qb.andWhere(`concat(u.first_name,u.last_name,u.email) like '%${search}%'`);
             }
-            if(projectId) {
+            if (projectId) {
                 qb.andWhere(`up.project_id = ${projectId}`);
             }
 
@@ -81,7 +81,7 @@ export class ProjectService {
             }
             const [users, count] = await qb.getManyAndCount();
             const collaborators = users.map(u => {
-                const collaborator : CollaboratorDTO = {
+                const collaborator: CollaboratorDTO = {
                     uid: u.id,
                     role: u.role,
                     firstName: u.firstName,
@@ -109,14 +109,14 @@ export class ProjectService {
             if (search) {
                 qb.andWhere(`concat(u.first_name,u.last_name,u.email) like '%${search}%'`);
             }
-            if(projectId) {
+            if (projectId) {
                 qb.andWhere(`up.project_id != ${projectId}`);
             }
 
-            if(userClaims.payload.uid) {
+            if (userClaims.payload.uid) {
                 qb.andWhere(`up.created_by = "${userClaims.payload.email}"`);
             }
- 
+
             qb.orderBy({
                 "u.id": sortOrder as any
             });
@@ -126,18 +126,18 @@ export class ProjectService {
             }
             const [users, count] = await qb.getManyAndCount();
             const noCollaborators = users.map(u => {
-                const collaborator : CollaboratorDTO = {
+                const collaborator: CollaboratorDTO = {
                     uid: u.id,
                     role: u.role,
                     firstName: u.firstName,
                     lastName: u.lastName,
                     email: u.email
-                    };
+                };
                 return collaborator;
             });
 
             const [collaborators, count2] = await this.getCollaborators(page, pageSize, sortOrder, search, projectId);
-            const resultCollaborators = noCollaborators.filter(x => { return !collaborators.some(x2 => {return x.uid === x2.uid})});
+            const resultCollaborators = noCollaborators.filter(x => { return !collaborators.some(x2 => { return x.uid === x2.uid }) });
 
             return [resultCollaborators, count];
         } catch (error) {
@@ -168,8 +168,8 @@ export class ProjectService {
                 userProject.project = project;
                 userProject.user = entity;
                 await userProjectRepo.save(userProject);
-                
-                const collaborator : CollaboratorDTO = {
+
+                const collaborator: CollaboratorDTO = {
                     uid: entity.id,
                     firstName: entity.firstName,
                     lastName: entity.lastName,
@@ -197,7 +197,7 @@ export class ProjectService {
             console.error(error);
             return Promise.reject(error);
         }
-    }   
+    }
 
 
     async getById(id: number): Promise<Project> {
@@ -225,16 +225,28 @@ export class ProjectService {
                 const projectRepo = transactionalEntityManager.getCustomRepository(ProjectRepository);
                 const userProjectRepo = transactionalEntityManager.getCustomRepository(UserProjectRepository);
                 const userRepo = transactionalEntityManager.getCustomRepository(UserRepository);
-                console.log("Creating test project:");
-                console.log(entity);
-                const project = await projectRepo.save(entity);
-                console.log("Project saved successfully");
-                console.log("Assigning user to project");
+
                 const userClaims = container.resolve(UserClaims);
                 const user = await userRepo.findOne(userClaims.payload.uid);
                 if (!user) {
                     throw new BusinessError('Lo sentimos, su sesión ha expirado. Vuelva a ingresar.', 403);
                 }
+
+                const alreadyExists = await projectRepo.createQueryBuilder("p")
+                    .innerJoin("p.userProjects", "up")
+                    .where("p.title = :title and up.user_id = :userId", { title: entity.title, userId: user.id })
+                    .getCount() > 0;
+
+                if (alreadyExists) {
+                    throw new BusinessError(`El proyecto con título "${entity.title}" ya se encuentra registrado`, 400);
+                }
+
+                console.log("Creating test project:");
+                console.log(entity);
+                const project = await projectRepo.save(entity);
+                console.log("Project saved successfully");
+                console.log("Assigning user to project");
+
                 const userProject = new UserProject();
                 userProject.accessType = 'Owner';
                 userProject.user = user;
@@ -282,8 +294,8 @@ export class ProjectService {
                 userProject.project = project;
                 userProject.user = entity;
                 await userProjectRepo.save(userProject);
-                
-                const collaborator : CollaboratorDTO = {
+
+                const collaborator: CollaboratorDTO = {
                     uid: entity.id,
                     firstName: entity.firstName,
                     lastName: entity.lastName,
@@ -318,10 +330,25 @@ export class ProjectService {
             const conn = await this._database.getConnection();
             return await conn.transaction(async transactionalEntityManager => {
                 const projectRepo = transactionalEntityManager.getCustomRepository(ProjectRepository);
+                const userRepo = transactionalEntityManager.getCustomRepository(UserRepository);
                 const entity = await projectRepo.findOne(id);
                 if (!entity) {
                     const notFoundError = new BusinessError(StringUtils.format(ProvaConstants.MESSAGE_RESPONSE_NOT_FOUND, 'Projects', id.toString()), 404);
                     return Promise.reject(notFoundError);
+                }
+                const userClaims = container.resolve(UserClaims);
+                const user = await userRepo.findOne(userClaims.payload.uid);
+                if (!user) {
+                    throw new BusinessError('Lo sentimos, su sesión ha expirado. Vuelva a ingresar.', 403);
+                }
+                if (entity.title !== dto.title) {
+                    const alreadyExists = await projectRepo.createQueryBuilder("p")
+                        .innerJoin("p.userProjects", "up")
+                        .where("p.title = :title and up.user_id = :userId", { title: dto.title, userId: user.id })
+                        .getCount() > 0;
+                    if (alreadyExists) {
+                        throw new BusinessError(`El proyecto con título "${dto.title}" ya se encuentra registrado`, 400);
+                    }
                 }
                 console.log("Updating test project:");
                 entity.title = dto.title;

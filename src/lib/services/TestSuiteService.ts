@@ -279,7 +279,9 @@ export class TestSuiteService {
 
                 return entities;
             }).catch(error => {
-                return Promise.reject(error);
+                console.error(error);
+                const friendlyError = new BusinessError("Hubo un error en la carga del archivo, por favor verifique el formato del .csv", 400);
+                return Promise.reject(friendlyError);
             });
         } catch (error) {
             console.error(error);
