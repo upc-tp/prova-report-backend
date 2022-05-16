@@ -1,6 +1,9 @@
 import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 import { AuditEntity } from "./AuditEntity.entity";
+import { TestPlan } from "./TestPlan.entity";
+import { TestSuite } from "./TestSuite.entity";
 import { UserProject } from "./UserProject.entity";
+import { UserStory } from "./UserStory.entity";
 
 @Entity({
     name: 'projects'
@@ -10,9 +13,6 @@ export class Project extends AuditEntity {
         type: 'int'
     })
     id: number;
-
-    @OneToMany(() => UserProject, up => up.project)
-    userProjects: UserProject[];
 
     @Column({
         type: 'varchar',
@@ -31,4 +31,24 @@ export class Project extends AuditEntity {
         name: 'last_version'
     })
     lastVersion: number;
+
+    @OneToMany(() => UserProject, up => up.project, {
+        cascade: true
+    })
+    userProjects: UserProject[];
+
+    @OneToMany(() => TestPlan, s => s.project, {
+        cascade: true
+    })
+    testPlans: TestPlan[];
+
+    @OneToMany(() => TestSuite, ts => ts.project, {
+        cascade: true
+    })
+    testSuites: TestSuite[];
+
+    @OneToMany(() => UserStory, us => us.project, {
+        cascade: true
+    })
+    userStories: UserStory[];
 }

@@ -25,7 +25,7 @@ router.get('/' , async (req: Request, res: Response, next: NextFunction) => {
             page = 1;
             pageSize = count;
         }
-        const message = StringUtils.format(ProvaConstants.MESSAGE_RESPONSE_GET_SUCCESS, 'Proyecto de prueba');
+        const message = StringUtils.format(ProvaConstants.MESSAGE_RESPONSE_GET_SUCCESS, 'Proyecto');
         const response = ResultResponse(page, pageSize, count, message, true, result);
         res.status(200).send(response);
     } catch (error) {
@@ -38,9 +38,9 @@ router.get('/:id', async (req: Request, res: Response, next: NextFunction) => {
         const id = +req.params.id;
         const result = await _projectService.getById(id);
         if(!result) {
-            throw new BusinessError(StringUtils.format(ProvaConstants.MESSAGE_RESPONSE_NOT_FOUND, 'Proyecto de prueba', id.toString()), 404);
+            throw new BusinessError(StringUtils.format(ProvaConstants.MESSAGE_RESPONSE_NOT_FOUND, 'Proyecto', id.toString()), 404);
         } 
-        const message = StringUtils.format(ProvaConstants.MESSAGE_RESPONSE_GET_SUCCESS, 'Proyecto de prueba');
+        const message = StringUtils.format(ProvaConstants.MESSAGE_RESPONSE_GET_SUCCESS, 'Proyecto');
         const response = SingleResponse(message, true, result);
         res.status(200).send(response);
     } catch (error) {
@@ -94,7 +94,7 @@ router.post('/', async (req: Request, res: Response, next: NextFunction) => {
             return next(errors);
         }
         const result = await _projectService.save(dto);
-        const message = StringUtils.format(ProvaConstants.MESSAGE_RESPONSE_POST_SUCCESS, 'Proyecto de prueba');
+        const message = StringUtils.format(ProvaConstants.MESSAGE_RESPONSE_POST_SUCCESS, 'Proyecto');
         const response = SingleResponse(message, true, result);
         res.status(201).send(response);
     } catch (error) {
@@ -133,6 +133,19 @@ router.post('/:id/collaborators/:userId', async (req: Request, res: Response, ne
     }
 });
 
+router.delete('/:id/collaborators/:userId', async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const id = +req.params.id;
+        const userId = +req.params.userId;
+        const result = await _projectService.deleteCollaborator(id, userId);
+        const message = StringUtils.format(ProvaConstants.MESSAGE_RESPONSE_DELETE_SUCCESS, 'Colaborador de proyecto');
+        const response = SingleResponse(message, true, result);
+        res.status(200).send(response);
+    } catch (error) {
+        return next(error);
+    }
+});
+
 router.put('/:id', async (req: Request, res: Response, next: NextFunction) => {
     try {
         const id = +req.params.id;
@@ -142,12 +155,24 @@ router.put('/:id', async (req: Request, res: Response, next: NextFunction) => {
             return next(errors);
         }
         const result = await _projectService.update(id, dto);
-        const message = StringUtils.format(ProvaConstants.MESSAGE_RESPONSE_PUT_SUCCESS, 'Proyecto de prueba');
+        const message = StringUtils.format(ProvaConstants.MESSAGE_RESPONSE_PUT_SUCCESS, 'Proyecto');
         const response = SingleResponse(message, true, result);
         res.status(200).send(response);
     } catch (error) {
         return next(error);
     }
 });
+
+router.delete('/:id', async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const id = +req.params.id;
+        const result = await _projectService.delete(id);
+        const message = StringUtils.format(ProvaConstants.MESSAGE_RESPONSE_DELETE_SUCCESS, 'Proyecto');
+        const response = SingleResponse(message, true, result);
+        res.status(200).send(response);
+    } catch (error) {
+        return next(error);
+    }
+})
 
 export = router;

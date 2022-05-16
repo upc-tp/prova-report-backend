@@ -162,7 +162,7 @@ export class ProjectService {
                 }
                 const project = await projectRepo.findOne(projectId);
                 if (!project) {
-                    const notFoundError = new BusinessError(StringUtils.format(ProvaConstants.MESSAGE_RESPONSE_NOT_FOUND, 'Projects', projectId.toString()), 404);
+                    const notFoundError = new BusinessError(StringUtils.format(ProvaConstants.MESSAGE_RESPONSE_NOT_FOUND, 'Proyecto', projectId.toString()), 404);
                     return Promise.reject(notFoundError);
                 }
                 const userProject = new UserProject();
@@ -209,8 +209,7 @@ export class ProjectService {
             const project = await projectRepo.findOne({ id }, {
                 where: {
                     deletedAt: null,
-                },
-                withDeleted: true
+                }
             });
             return project;
         } catch (error) {
@@ -299,7 +298,7 @@ export class ProjectService {
                 const entity = await userRepo.save(user);
                 const project = await projectRepo.findOne(projectId);
                 if (!project) {
-                    const notFoundError = new BusinessError(StringUtils.format(ProvaConstants.MESSAGE_RESPONSE_NOT_FOUND, 'Projects', projectId.toString()), 404);
+                    const notFoundError = new BusinessError(StringUtils.format(ProvaConstants.MESSAGE_RESPONSE_NOT_FOUND, 'Proyecto', projectId.toString()), 404);
                     return Promise.reject(notFoundError);
                 }
                 const userProject = new UserProject();
@@ -346,7 +345,7 @@ export class ProjectService {
                 const userRepo = transactionalEntityManager.getCustomRepository(UserRepository);
                 const entity = await projectRepo.findOne(id);
                 if (!entity) {
-                    const notFoundError = new BusinessError(StringUtils.format(ProvaConstants.MESSAGE_RESPONSE_NOT_FOUND, 'Projects', id.toString()), 404);
+                    const notFoundError = new BusinessError(StringUtils.format(ProvaConstants.MESSAGE_RESPONSE_NOT_FOUND, 'Proyecto', id.toString()), 404);
                     return Promise.reject(notFoundError);
                 }
                 const userClaims = container.resolve(UserClaims);
@@ -377,5 +376,62 @@ export class ProjectService {
             console.error(error);
             return Promise.reject(error);
         }
+    }
+
+    async delete(id: number): Promise<any> {
+        try {
+            const conn = await this._database.getConnection();
+            return await conn.transaction(async transactionalEntityManager => {
+                const projectRepo = transactionalEntityManager.getCustomRepository(ProjectRepository);
+                const entity = await projectRepo.findOne(id, {
+                    relations: [
+                        "testPlans",
+                        "testSuites",
+                        "userStories"
+                    ]
+                });
+                if (!entity) {
+                    const notFoundError = new BusinessError(StringUtils.format(ProvaConstants.MESSAGE_RESPONSE_NOT_FOUND, 'Proyecto', id.toString()), 404);
+                    return Promise.reject(notFoundError);
+                }
+                const result = await projectRepo.softRemove(entity);
+                return result;
+            }).catch(error => {
+                return Promise.reject(error);
+            });
+        } catch (error) {
+            console.error(error);
+            return Promise.reject(error);
+        } 
+    }
+
+    async deleteCollaborator(id: number, userId: number): Promise<any> {
+        try {
+            const conn = await this._database.getConnection();
+            return await conn.transaction(async transactionalEntityManager => {
+                const userProjectRepo = transactionalEntityManager.getCustomRepository(UserProjectRepository);
+                const entity = await userProjectRepo.findOne({
+                    where: {
+                        user: {
+                            id: userId
+                        },
+                        project: {
+                            id
+                        }
+                    }
+                });
+                if (!entity) {
+                    const notFoundError = new BusinessError(StringUtils.format(ProvaConstants.MESSAGE_RESPONSE_NOT_FOUND, 'Colaborador de proyecto', id.toString()), 404);
+                    return Promise.reject(notFoundError);
+                }
+                const result = await userProjectRepo.remove(entity);
+                return result;
+            }).catch(error => {
+                return Promise.reject(error);
+            });
+        } catch (error) {
+            console.error(error);
+            return Promise.reject(error);
+        } 
     }
 }

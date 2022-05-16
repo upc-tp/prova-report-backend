@@ -72,8 +72,7 @@ export class TestPlanService {
                 relations: [
                     "project",
                     "version"
-                ],
-                withDeleted: true
+                ]
             });
             return plan;
         } catch (error) {

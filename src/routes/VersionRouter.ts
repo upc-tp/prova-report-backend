@@ -82,4 +82,16 @@ router.put('/:id', async (req: Request,res: Response, next: NextFunction) => {
     }
 });
 
+router.delete('/:id', async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const id = +req.params.id;
+        const result = await _versionService.delete(id);
+        const message = StringUtils.format(ProvaConstants.MESSAGE_RESPONSE_DELETE_SUCCESS, 'Version');
+        const response = SingleResponse(message, true, result);
+        res.status(200).send(response);
+    } catch (error) {
+        return next(error);
+    }
+});
+
 export = router;

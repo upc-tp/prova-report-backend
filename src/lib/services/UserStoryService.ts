@@ -80,8 +80,7 @@ export class UserStoryService {
                     "testPlan",
                     "userStoryCriterias",
                     "userStoryCriterias.testCase"
-                ],
-                withDeleted: true
+                ]
             });
             return execution;
         } catch (error) {

@@ -88,8 +88,7 @@ export class DefectService {
                     "testCase.testSuite",
                     "testCase.testSuite.testPlan",
                     "testExecution"
-                ],
-                withDeleted: true
+                ]
             });
             return defect;
         } catch (error) {

@@ -79,8 +79,7 @@ export class TestSuiteService {
                     "project",
                     "testState",
                     "testPlan"
-                ],
-                withDeleted: true
+                ]
             });
             return suite;
         } catch (error) {

@@ -63,8 +63,7 @@ export class TestExecutionService {
                     "testExecutionSteps",
                     "testExecutionSteps.testState",
                     "testCase"
-                ],
-                withDeleted: true
+                ]
             });
             return execution;
         } catch (error) {
@@ -90,8 +89,7 @@ export class TestExecutionService {
                     "testExecutionSteps",
                     "testExecutionSteps.testState",
                     "testCase"
-                ],
-                withDeleted: true
+                ]
             });
             return execution;
         } catch (error) {

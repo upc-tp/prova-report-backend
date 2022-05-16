@@ -129,14 +129,34 @@ export class VersionService {
                 },
                 relations: [
                     "project"
-                ],
-                withDeleted: true
+                ]
             });
             return version;
         } catch (error) {
             console.log(error);
             return Promise.reject(error);
         }
+    }
+
+    async delete(id: number): Promise<any> {
+        try {
+            const conn = await this._database.getConnection();
+            return await conn.transaction(async transactionalEntityManager => {
+                const versionRepo = transactionalEntityManager.getCustomRepository(VersionsRepository);
+                const entity = await versionRepo.findOne(id);
+                if (!entity) {
+                    const notFoundError = new BusinessError(StringUtils.format(ProvaConstants.MESSAGE_RESPONSE_NOT_FOUND, 'Version', id.toString()), 404);
+                    return Promise.reject(notFoundError);
+                }
+                const result = await versionRepo.remove(entity);
+                return result;
+            }).catch(error => {
+                return Promise.reject(error);
+            });
+        } catch (error) {
+            console.error(error);
+            return Promise.reject(error);
+        } 
     }
 
 }

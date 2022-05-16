@@ -100,8 +100,7 @@ export class TestCaseService {
                     "severity",
                     "priority",
                     "userInCharge",
-                ],
-                withDeleted: true
+                ]
             });
             let testCaseDto = plainToClass(TestCaseDTO, testCase);
             if (testCase.userInCharge) {
