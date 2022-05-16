@@ -16,6 +16,8 @@ import { ProjectRepository } from "../repositories/ProjectRepository";
 import { UserProjectRepository } from "../repositories/UserProjectRepository";
 import { UserRepository } from "../repositories/UserRepository";
 import { transporter } from "../common/mailer";
+import { VersionsRepository } from "../repositories/VersionsRepository";
+import { Version } from "../models/Version.entity";
 
 @singleton()
 export class ProjectService {
@@ -225,6 +227,7 @@ export class ProjectService {
                 const projectRepo = transactionalEntityManager.getCustomRepository(ProjectRepository);
                 const userProjectRepo = transactionalEntityManager.getCustomRepository(UserProjectRepository);
                 const userRepo = transactionalEntityManager.getCustomRepository(UserRepository);
+                const versionRepo = transactionalEntityManager.getCustomRepository(VersionsRepository);
 
                 const userClaims = container.resolve(UserClaims);
                 const user = await userRepo.findOne(userClaims.payload.uid);
@@ -243,6 +246,7 @@ export class ProjectService {
 
                 console.log("Creating test project:");
                 console.log(entity);
+                entity.lastVersion = 1;
                 const project = await projectRepo.save(entity);
                 console.log("Project saved successfully");
                 console.log("Assigning user to project");
@@ -253,6 +257,15 @@ export class ProjectService {
                 userProject.project = project;
                 await userProjectRepo.save(userProject);
                 console.log("User assigned to project successfully");
+
+                console.log("Creating version: ");
+                const newVersion = new Version();
+                newVersion.title = "1.0";
+                newVersion.description = dto.description;
+                newVersion.order = 1;
+                newVersion.project = project;
+                await versionRepo.save(newVersion);
+                console.log("Version saved successfully");
                 return project;
             }).catch(error => {
                 return Promise.reject(error);
