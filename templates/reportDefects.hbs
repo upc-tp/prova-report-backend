@@ -14,10 +14,19 @@
 
 <body>
     <div class="container">
-        <h1>Reporte de Defectos</h1>
-        <h3>Fecha de generación: {{reportDate}}</h3>
-        <h3>Proyecto: {{project.title}}</h3>
-        <h2 id="defects">Defectos reportados</h2>
+        <h5 style="text-align:center;">Reporte de defectos</h5>
+        <br>
+        <div style="
+        margin-bottom: 2rem;
+        display: flex; 
+        flex-direction: row; 
+        flex-wrap: wrap; 
+        justify-content:space-between; 
+        align-items: center;">
+            <div>Proyecto: {{project.title}}</div>
+            <div>&nbsp;Fecha de generación: {{reportDate}}</div>
+        </div>
+        <h5 style="margin-bottom: 1rem;" id="defects">Defectos reportados</h5>
         <table class="table">
             <thead class="table-primary">
                 <th>Etiqueta</th>
