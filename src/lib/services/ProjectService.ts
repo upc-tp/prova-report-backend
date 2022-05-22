@@ -18,6 +18,7 @@ import { UserRepository } from "../repositories/UserRepository";
 import { transporter } from "../common/mailer";
 import { VersionsRepository } from "../repositories/VersionsRepository";
 import { Version } from "../models/Version.entity";
+import { TestCase } from "../models/TestCase.entity";
 
 @singleton()
 export class ProjectService {
@@ -59,7 +60,7 @@ export class ProjectService {
         }
     }
 
-    async getCollaborators(page: number, pageSize: number, sortOrder: string = ProvaConstants.SORT_ORDER_DESC, search: string, projectId: number = null): Promise<[CollaboratorDTO[], number]> {
+    async getCollaborators(page: number, pageSize: number, sortOrder: string = ProvaConstants.SORT_ORDER_DESC, search: string, projectId: number = null, includeOwner: number = 0): Promise<[CollaboratorDTO[], number]> {
         try {
             const conn = await this._database.getConnection();
             const skip = (page - 1) * pageSize;
@@ -67,6 +68,11 @@ export class ProjectService {
             const qb = userRepo.createQueryBuilder("u")
                 .innerJoin("users_projects", "up", "up.user_id = u.id")
                 .where(`u.deleted_at is null`);
+
+            if (!includeOwner) {
+                qb.andWhere(`up.access_type = "Collaborator"`)
+            }
+
             if (search) {
                 qb.andWhere(`concat(u.first_name,u.last_name,u.email) like '%${search}%'`);
             }
@@ -381,7 +387,7 @@ export class ProjectService {
     async delete(id: number): Promise<any> {
         try {
             const conn = await this._database.getConnection();
-            return await conn.transaction(async transactionalEntityManager => {
+            return await conn.transaction(async transactionalEntityManager => { 
                 const projectRepo = transactionalEntityManager.getCustomRepository(ProjectRepository);
                 const entity = await projectRepo.findOne(id, {
                     relations: [
@@ -394,6 +400,7 @@ export class ProjectService {
                     const notFoundError = new BusinessError(StringUtils.format(ProvaConstants.MESSAGE_RESPONSE_NOT_FOUND, 'Proyecto', id.toString()), 404);
                     return Promise.reject(notFoundError);
                 }
+                console.log(entity);
                 const result = await projectRepo.softRemove(entity);
                 return result;
             }).catch(error => {
@@ -402,13 +409,26 @@ export class ProjectService {
         } catch (error) {
             console.error(error);
             return Promise.reject(error);
-        } 
+        }
     }
 
     async deleteCollaborator(id: number, userId: number): Promise<any> {
         try {
             const conn = await this._database.getConnection();
             return await conn.transaction(async transactionalEntityManager => {
+                const testCaseRepo = transactionalEntityManager.getRepository(TestCase);
+                const qb = testCaseRepo.createQueryBuilder("tc")
+                    .where(`tc.user_charge_id = id`);
+
+                const count = await qb.getCount();
+
+                console.log("El colaborador tiene ", count);
+
+                if (count > 0){
+                    const notFoundError = new BusinessError('El usuario tiene casos de prueba asignados', 404);
+                    return Promise.reject(notFoundError);
+                }
+
                 const userProjectRepo = transactionalEntityManager.getCustomRepository(UserProjectRepository);
                 const entity = await userProjectRepo.findOne({
                     where: {
@@ -432,6 +452,6 @@ export class ProjectService {
         } catch (error) {
             console.error(error);
             return Promise.reject(error);
-        } 
+        }
     }
 }

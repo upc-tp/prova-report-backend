@@ -10,11 +10,12 @@ import { AuthService } from '../lib/services/AuthService';
 import { RegisterDTO } from '../lib/dtos/RegisterDTO';
 import { ResetPasswordDTO } from '../lib/dtos/ResetPasswordDTO';
 import { authenticateJWT } from '../lib/middlewares/authenticate';
+import { loginlimiter } from '../lib/middlewares/authorize';
 
 const _authService = container.resolve(AuthService);
 const router = express.Router();
 
-router.post('/login', async (req: Request, res: Response, next: NextFunction) => {
+router.post('/login', loginlimiter, async (req: Request, res: Response, next: NextFunction) => {
     try {
         const dto: LoginDTO = plainToClass(LoginDTO, req.body);
         const errors = await validate(dto);

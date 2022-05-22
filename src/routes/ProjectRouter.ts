@@ -53,8 +53,9 @@ router.get('/:id/collaborators', async (req: Request, res: Response, next: NextF
         const id = +req.params.id;
         let page = +req.query.page;
         let pageSize = +req.query.pageSize;
+        let includeOwner = +req.query.includeOwner;
         const { sortOrder, search } = req.query;
-        const [result, count] = await _projectService.getCollaborators(page, pageSize, sortOrder as string, search as string, id);
+        const [result, count] = await _projectService.getCollaborators(page, pageSize, sortOrder as string, search as string, id, includeOwner);
         if (!page || !pageSize) {
             page = 1;
             pageSize = count;

@@ -225,8 +225,9 @@ export class TestCaseService {
                 const user = await userRepo.findOne({
                     where: {
                         id: dto.userId
-                    }
+                    }    
                 });
+                console.log("el usuario ", user);
                 const priority = await priorityRepo.findOne(dto.priorityId);
                 if (!priority) {
                     const notFoundError = new BusinessError(StringUtils.format(ProvaConstants.MESSAGE_RESPONSE_NOT_FOUND, 'Priority', dto.priorityId.toString()), 404);
@@ -242,7 +243,7 @@ export class TestCaseService {
                 entity.description = dto.description;
                 entity.priority = priority;
                 entity.severity = severity;
-                entity.userInCharge = user;
+                entity.userInCharge = user == null ? null : user;
                 console.log(entity);
                 const testCase = await testCaseRepo.save(entity);
                 console.log("Test case updated successfully");
