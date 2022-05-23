@@ -22,7 +22,7 @@ export const loginlimiter = rateLimit({
 	windowMs: 15 * 60 * 1000, // 10 minutes
 	max: 5, // Limit each IP to 5 requests per `window` (here, per 10 minutes)
     message: {
-        message: "Error de inicio de seción, has alcanzado el número máximo de intentos. Intenta de nuevo en 15 minutos",
+        message: "Error de inicio de sesión, has alcanzado el número máximo de intentos. Intenta de nuevo en 15 minutos",
         success: false,
         result: null
     },

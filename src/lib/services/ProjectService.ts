@@ -418,7 +418,11 @@ export class ProjectService {
             return await conn.transaction(async transactionalEntityManager => {
                 const testCaseRepo = transactionalEntityManager.getRepository(TestCase);
                 const qb = testCaseRepo.createQueryBuilder("tc")
-                    .where(`tc.user_charge_id = id`);
+                    .innerJoinAndSelect('tc.testSuite', 'tst')
+                    .where(`tc.user_charge_id = :userId AND tst.project_id = :id`, {
+                        userId,
+                        id
+                    })
 
                 const count = await qb.getCount();
 
