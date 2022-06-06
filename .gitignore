@@ -8,8 +8,6 @@ dist
 # TypeScript
 .build
 
-# Dotenv
-.env
 uploads
 
 #Other
